@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de Etiquetas Escolares 300 DPI</title>
+  <!-- Tipografías de diseño y escolares -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Comic+Neue:wght@700&family=Comfortaa:wght@600&family=Montserrat:wght@500;700&family=Poppins:wght@400;600;700&family=Quicksand:wght@500;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #181820;
+      --card-bg: #23232f;
+      --text: #ececf3;
+      --accent: #4e8cff;
+      --accent-hover: #3b74db;
+      --success: #10b981;
+      --border: #3b3b4d;
+      --highlight: #60a5fa;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { display: flex; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
+    
+    /* Panel lateral */
+    #sidebar {
+      width: 470px;
+      min-width: 470px;
+      height: 100%;
+      background: var(--card-bg);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #9ea2be;
+      margin-bottom: 7px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    label { font-size: 11px; color: #c6c7dc; }
+    input, select {
+      background: #14141a;
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 6px 8px;
+      border-radius: 5px;
+      font-size: 12px;
+    }
+    input[type="color"] { padding: 1px; height: 30px; cursor: pointer; }
+    input[type="file"] { font-size: 11px; }
+    .range-wrap { display: flex; align-items: center; gap: 6px; }
+    .range-wrap span { font-size: 11px; color: #9da0b5; min-width: 35px; }
+
+    .help-pill {
+      background: #191924;
+      border-left: 3px solid var(--accent);
+      padding: 7px 10px;
+      font-size: 11px;
+      color: #a8aaba;
+      line-height: 1.4;
+      border-radius: 4px;
+    }
+
+    #subjects-list { display: flex; flex-direction: column; gap: 6px; }
+    .subject-row {
+      display: grid;
+      grid-template-columns: 20px 1.2fr 1fr;
+      gap: 5px;
+      align-items: center;
+      background: #1b1b26;
+      padding: 5px 7px;
+      border-radius: 5px;
+      font-size: 11px;
+      border: 1px solid transparent;
+    }
+    .subject-row.selected {
+      border-color: var(--highlight);
+      background: #25283b;
+    }
+
+    .btn-group { display: flex; gap: 8px; margin-top: 8px; }
+    button {
+      flex: 1;
+      padding: 9px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 12px;
+      transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.9; }
+    button.secondary { background: #353547; }
+    button.save-btn { background: #059669; }
+    button.save-btn:hover { background: #047857; }
+    button.load-btn { background: #d97706; }
+    button.load-btn:hover { background: #b45309; }
+
+    .mini-btn {
+      padding: 5px 8px;
+      background: #353547;
+      font-size: 11px;
+      border-radius: 4px;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+    }
+    .mini-btn:hover { background: #4a4a60; }
+
+    #preview-container {
+      flex: 1;
+      height: 100%;
+      background: #0f0f13;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+      padding: 20px;
+      position: relative;
+      outline: none;
+    }
+    canvas {
+      box-shadow: 0 10px 30px rgba(0,0,0,0.75);
+      background: #fff;
+      max-height: 88vh;
+      max-width: 88%;
+      object-fit: contain;
+      cursor: grab;
+      border-radius: 3px;
+    }
+    canvas:active { cursor: grabbing; }
+    #sheet-info {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #8c8ea8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PANEL DE CONFIGURACIÓN -->
+  <div id="sidebar">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="font-size: 16px;">Generador de Etiquetas</h2>
+    </div>
+
+    <!-- 0. Guardar y Cargar Proyecto -->
+    <div class="form-group">
+      <div class="section-title">0. Proyecto y Plantillas</div>
+      <div class="btn-group" style="margin-top: 0;">
+        <button type="button" class="save-btn" id="btnSaveProject">💾 Guardar Proyecto (.json)</button>
+        <button type="button" class="load-btn" id="btnLoadProjectTrigger">📂 Cargar Proyecto</button>
+        <input type="file" id="projectFileInput" accept=".json" style="display: none;">
+      </div>
+      <span id="projectStatus" style="font-size: 11px; color: #10b981; margin-top: 2px;"></span>
+    </div>
+
+    <!-- 1. Hoja, Márgenes y Separación -->
+    <div class="form-group">
+      <div class="section-title">1. Hoja, Márgenes y Separación (cm)</div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Formato</label>
+          <select id="sheetFormat">
+            <option value="letter">Carta (21.59 × 27.94)</option>
+            <option value="a4">A4 (21.0 × 29.7)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Orientación</label>
+          <select id="sheetOrientation">
+            <option value="portrait">Vertical</option>
+            <option value="landscape">Horizontal</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-4" style="margin-top: 4px;">
+        <div class="form-group">
+          <label>M. Sup</label>
+          <input type="number" id="marginTop" value="0.8" step="0.1" min="0">
+        </div>
+        <div class="form-group">
+          <label>M. Inf</label>
+          <input type="number" id="marginBottom" value="0.8" step="0.1" min="0">
+        </div>
+        <div class="form-group">
+          <label>M. Izq</label>
+          <input type="number" id="marginLeft" value="0.5" step="0.1" min="0">
+        </div>
+        <div class="form-group">
+          <label>M. Der</label>
+          <input type="number" id="marginRight" value="0.5" step="0.1" min="0">
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top: 4px;">
+        <div class="form-group">
+          <label>Espacio Horizontal (Gap X)</label>
+          <input type="number" id="gapX" value="0.0" step="0.1" min="0">
+        </div>
+        <div class="form-group">
+          <label>Espacio Vertical (Gap Y)</label>
+          <input type="number" id="gapY" value="0.0" step="0.1" min="0">
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Medidas y Geometría -->
+    <div class="form-group">
+      <div class="section-title">2. Tamaño y Formas</div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Ancho Etiqueta (cm)</label>
+          <input type="number" id="labelWidth" value="10.5" step="0.1">
+        </div>
+        <div class="form-group">
+          <label>Alto Etiqueta (cm)</label>
+          <input type="number" id="labelHeight" value="4.0" step="0.1">
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top: 4px;">
+        <div class="form-group">
+          <label>Esquinas</label>
+          <select id="roundedCorners">
+            <option value="rounded">Esquinas Redondeadas</option>
+            <option value="straight">Esquinas Rectas</option>
+          </select>
+        </div>
+        <div class="form-group" style="justify-content: flex-end; padding-bottom: 4px;">
+          <label>
+            <input type="checkbox" id="enableSideTab" checked> Pestaña Lateral
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Tipografía y Google Fonts Embed -->
+    <div class="form-group">
+      <div class="section-title">3. Tipografías, Embeds y Colores</div>
+      
+      <!-- Inyector de Google Fonts -->
+      <div class="form-group">
+        <label>➕ Agregar Google Font (Pega &lt;link&gt;, @import o el nombre):</label>
+        <div style="display: flex; gap: 6px;">
+          <input type="text" id="customGoogleFontInput" placeholder="Ej: Pacifico, Fredoka, Bebas Neue...">
+          <button type="button" class="mini-btn" id="btnAddGoogleFont" style="min-width: 75px;">Cargar</button>
+        </div>
+        <span id="fontLoadStatus" style="font-size: 11px; color: #4e8cff;"></span>
+      </div>
+
+      <div class="grid-2" style="margin-top: 4px;">
+        <div class="form-group">
+          <label>Fuente Alumno / Grado</label>
+          <select id="fontFamilyStudent">
+            <option value="'Century Gothic', Arial, sans-serif">Century Gothic / Arial</option>
+            <option value="'Quicksand', sans-serif">Quicksand (Redondeada)</option>
+            <option value="'Poppins', sans-serif">Poppins</option>
+            <option value="'Comfortaa', cursive">Comfortaa</option>
+            <option value="'Comic Neue', cursive">Comic Neue</option>
+            <option value="'Roboto', sans-serif">Roboto</option>
+            <option value="'Montserrat', sans-serif">Montserrat</option>
+            <option value="'Caveat', cursive">Caveat (Manuscrita)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fuente Asignatura</label>
+          <select id="fontFamilySubject">
+            <option value="'Century Gothic', Arial, sans-serif">Century Gothic / Arial</option>
+            <option value="'Poppins', sans-serif">Poppins</option>
+            <option value="'Montserrat', sans-serif">Montserrat</option>
+            <option value="'Quicksand', sans-serif">Quicksand</option>
+            <option value="'Roboto', sans-serif">Roboto</option>
+            <option value="'Comic Neue', cursive">Comic Neue</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Nombre y Apellidos -->
+      <div class="grid-2" style="margin-top: 4px;">
+        <div class="form-group">
+          <label>Color Nombre/Apellidos</label>
+          <input type="color" id="studentTextColor" value="#111111">
+        </div>
+        <div class="form-group">
+          <label>Tamaño Nombre/Apellidos</label>
+          <div class="range-wrap">
+            <input type="range" id="studentFontSizeScale" min="0.6" max="1.5" step="0.05" value="1.0">
+            <span id="studentFontScaleVal">100%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grado y Salón -->
+      <div class="grid-3" style="margin-top: 4px;">
+        <div class="form-group">
+          <label>Color Grado/Salón</label>
+          <input type="color" id="gradeTextColor" value="#222222">
+        </div>
+        <div class="form-group">
+          <label>Tamaño Grado</label>
+          <div class="range-wrap">
+            <input type="range" id="gradeFontSizeScale" min="0.6" max="1.5" step="0.05" value="1.0">
+            <span id="gradeFontScaleVal">100%</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Espacio Grado-Salón</label>
+          <input type="number" id="gradeGroupGap" value="0.4" step="0.1" min="0">
+        </div>
+      </div>
+
+      <!-- Asignatura -->
+      <div class="grid-2" style="margin-top: 4px;">
+        <div class="form-group">
+          <label>Color Asignatura</label>
+          <input type="color" id="subjectTextColor" value="#ffffff">
+        </div>
+        <div class="form-group">
+          <label>Tamaño Asignatura</label>
+          <div class="range-wrap">
+            <input type="range" id="subjectFontSizeScale" min="0.6" max="1.5" step="0.05" value="1.0">
+            <span id="subjectFontScaleVal">100%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Datos del Alumno -->
+    <div class="form-group">
+      <div class="section-title">4. Datos del Alumno (Sincronizados)</div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Nombre(s)</label>
+          <input type="text" id="studentName" value="Pedro Jeremias">
+        </div>
+        <div class="form-group">
+          <label>Apellidos</label>
+          <input type="text" id="studentSurname" value="Ramírez">
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top: 4px;">
+        <div class="form-group">
+          <label>Grado</label>
+          <input type="text" id="studentGrade" value="6° Primaria">
+        </div>
+        <div class="form-group">
+          <label>Salón / Grupo</label>
+          <input type="text" id="studentGroup" value="Salón B">
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Fondos y Texturas -->
+    <div class="form-group">
+      <div class="section-title">5. Fondos y Colores</div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Fondo Etiqueta</label>
+          <input type="color" id="bgLabelColor" value="#d8be8d">
+        </div>
+        <div class="form-group">
+          <label>Fondo Bloque Texto</label>
+          <input type="color" id="bgCardColor" value="#f7f7f3">
+        </div>
+        <div class="form-group">
+          <label>Fondo Cinta Asignatura</label>
+          <input type="color" id="ribbonColor" value="#4a7c59">
+        </div>
+        <div class="form-group">
+          <label>Color Pestaña Lateral</label>
+          <input type="color" id="tabColor" value="#4a7c59">
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top: 4px;">
+        <div class="form-group">
+          <label>Textura Etiqueta</label>
+          <input type="file" id="bgLabelImage" accept="image/*">
+        </div>
+        <div class="form-group">
+          <label>Textura Bloque Texto</label>
+          <input type="file" id="bgCardImage" accept="image/*">
+        </div>
+      </div>
+      <div class="form-group" style="margin-top: 4px;">
+        <label>Textura Cinta Asignatura</label>
+        <input type="file" id="ribbonImage" accept="image/*">
+      </div>
+      <div class="form-group" style="margin-top: 4px;">
+        <label>
+          <input type="checkbox" id="showCutGuides" checked> Mostrar guías tenues de corte
+        </label>
+      </div>
+    </div>
+
+    <!-- 6. Control de Encuadre, Pan & Zoom de Capas -->
+    <div class="form-group">
+      <div class="section-title">6. Encuadre, Zoom y Posición de Imágenes</div>
+      <div class="form-group">
+        <label><b>Capa a Mover / Ajustar:</b></label>
+        <select id="activeTransformLayer">
+          <option value="icon">Ilustración Lateral (Insecto / Gráfico)</option>
+          <option value="bgLabel">Textura Fondo Etiqueta</option>
+          <option value="bgCard">Textura Bloque de Texto</option>
+          <option value="ribbon">Textura Cinta Asignatura</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="useSameImage" checked> Misma ilustración en todas las etiquetas
+        </label>
+      </div>
+      <div class="form-group" id="globalImageWrapper">
+        <label>Imagen Global de Ilustración</label>
+        <input type="file" id="globalImageInput" accept="image/*">
+      </div>
+
+      <div class="help-pill">
+        🖱️ <b>Arrastra en el lienzo</b> para encuadrar la capa seleccionada.<br>
+        🔍 <b>Rueda / Pad:</b> Zoom In / Out.<br>
+        ⌨️ <b>Teclas de cursor:</b> Ajuste fino (+Shift: rápido).
+      </div>
+      <div style="display: flex; gap: 6px; margin-top: 4px;">
+        <button type="button" class="mini-btn" id="btnZoomIn">➕ Zoom</button>
+        <button type="button" class="mini-btn" id="btnZoomOut">➖ Zoom</button>
+        <button type="button" class="mini-btn" id="btnResetTransform">↺ Centrar Capa</button>
+      </div>
+    </div>
+
+    <!-- 7. Asignaturas -->
+    <div class="form-group">
+      <div class="section-title">7. Asignaturas por Etiqueta</div>
+      <div id="subjects-list"></div>
+    </div>
+
+    <!-- Acciones Finales -->
+    <div class="btn-group">
+      <button id="btnExportPNG" class="secondary">Exportar PNG (300 DPI)</button>
+      <button id="btnExportPDF">Descargar PDF Imprimible</button>
+    </div>
+  </div>
+
+  <!-- PREVISUALIZACIÓN -->
+  <div id="preview-container" tabindex="0">
+    <canvas id="sheetCanvas"></canvas>
+    <div id="sheet-info">Calculando distribución...</div>
+  </div>
+
+  <script>
+    const DPI = 300;
+    const CM_TO_INCH = 1 / 2.54;
+    const cmToPx = cm => Math.round(cm * CM_TO_INCH * DPI);
+
+    // Estado global de imágenes y sus dataURLs para guardado
+    const assets = {
+      bgLabel: null,
+      bgCard: null,
+      ribbonImg: null,
+      globalIcon: null,
+      individualIcons: {}
+    };
+
+    const assetDataUrls = {
+      bgLabel: null,
+      bgCard: null,
+      ribbonImg: null,
+      globalIcon: null,
+      individualIcons: {}
+    };
+
+    // Transformaciones por capa: { scale, offsetX, offsetY }
+    const defaultTransform = () => ({ scale: 1.0, offsetX: 0, offsetY: 0 });
+    const layerTransforms = {
+      bgLabel: defaultTransform(),
+      bgCard: defaultTransform(),
+      ribbon: defaultTransform(),
+      iconGlobal: defaultTransform(),
+      iconIndividual: {}
+    };
+
+    let selectedLabelIndex = 0;
+    let customLoadedFonts = [];
+
+    const defaultSubjects = [
+      "Lenguajes", "Saberes y P. C.", "Ética, Nat. y Soc.", "De lo Hum. y Com.",
+      "Matemáticas", "Inglés", "Lectura", "Tareas", "Materia 9", "Materia 10"
+    ];
+
+    const canvas = document.getElementById('sheetCanvas');
+    const ctx = canvas.getContext('2d');
+    const sheetInfo = document.getElementById('sheet-info');
+    const subjectsContainer = document.getElementById('subjects-list');
+    const previewContainer = document.getElementById('preview-container');
+
+    function init() {
+      setupEventListeners();
+      setupInteractiveImageControls();
+      setupProjectSaveLoad();
+      document.fonts.ready.then(() => {
+        updateGrid();
+      });
+    }
+
+    function setupEventListeners() {
+      const inputs = document.querySelectorAll('input, select');
+      inputs.forEach(input => {
+        input.addEventListener('input', () => {
+          if (input.id === 'studentFontSizeScale') {
+            document.getElementById('studentFontScaleVal').innerText = Math.round(input.value * 100) + '%';
+          }
+          if (input.id === 'gradeFontSizeScale') {
+            document.getElementById('gradeFontScaleVal').innerText = Math.round(input.value * 100) + '%';
+          }
+          if (input.id === 'subjectFontSizeScale') {
+            document.getElementById('subjectFontScaleVal').innerText = Math.round(input.value * 100) + '%';
+          }
+
+          if (['sheetFormat', 'sheetOrientation', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'labelWidth', 'labelHeight', 'gapX', 'gapY'].includes(input.id)) {
+            updateGrid();
+          } else {
+            renderSheet();
+          }
+        });
+      });
+
+      // Cargas de texturas e imágenes
+      document.getElementById('bgLabelImage').addEventListener('change', e => handleImageUpload(e, (img, url) => { assets.bgLabel = img; assetDataUrls.bgLabel = url; renderSheet(); }));
+      document.getElementById('bgCardImage').addEventListener('change', e => handleImageUpload(e, (img, url) => { assets.bgCard = img; assetDataUrls.bgCard = url; renderSheet(); }));
+      document.getElementById('ribbonImage').addEventListener('change', e => handleImageUpload(e, (img, url) => { assets.ribbonImg = img; assetDataUrls.ribbonImg = url; renderSheet(); }));
+      document.getElementById('globalImageInput').addEventListener('change', e => handleImageUpload(e, (img, url) => { assets.globalIcon = img; assetDataUrls.globalIcon = url; renderSheet(); }));
+      
+      document.getElementById('useSameImage').addEventListener('change', e => {
+        document.getElementById('globalImageWrapper').style.display = e.target.checked ? 'flex' : 'none';
+        renderSheet();
+      });
+
+      document.getElementById('btnExportPNG').addEventListener('click', exportPNG);
+      document.getElementById('btnExportPDF').addEventListener('click', exportPDF);
+
+      // Botones rápidos de transformación
+      document.getElementById('btnZoomIn').addEventListener('click', () => applyZoom(1.1));
+      document.getElementById('btnZoomOut').addEventListener('click', () => applyZoom(0.9));
+      document.getElementById('btnResetTransform').addEventListener('click', () => {
+        const t = getActiveTransform();
+        t.scale = 1.0;
+        t.offsetX = 0;
+        t.offsetY = 0;
+        renderSheet();
+      });
+
+      // Cargador de Google Fonts
+      document.getElementById('btnAddGoogleFont').addEventListener('click', () => {
+        const val = document.getElementById('customGoogleFontInput').value.trim();
+        if (val) loadGoogleFont(val);
+      });
+    }
+
+    // Procesar y cargar fuentes de Google Fonts
+    function loadGoogleFont(input, callback) {
+      const status = document.getElementById('fontLoadStatus');
+      let fontName = '';
+      let href = '';
+
+      if (input.includes('href=')) {
+        const match = input.match(/href=["']([^"']+)["']/);
+        if (match) href = match[1];
+      } else if (input.includes('@import')) {
+        const match = input.match(/url\(["']?([^"')]+)['"]?\)/);
+        if (match) href = match[1];
+      } else if (input.startsWith('http')) {
+        href = input;
+      } else {
+        fontName = input;
+        const formatted = encodeURIComponent(fontName.replace(/\s+/g, '+'));
+        href = `https://fonts.googleapis.com/css2?family=${formatted}:wght@400;600;700&display=swap`;
+      }
+
+      if (!fontName && href) {
+        const nameMatch = href.match(/family=([^:&]+)/);
+        if (nameMatch) fontName = decodeURIComponent(nameMatch[1]).replace(/\+/g, ' ');
+      }
+
+      if (!fontName) {
+        if (status) { status.innerText = "❌ No se identificó la fuente."; status.style.color = "#ef4444"; }
+        return;
+      }
+
+      if (status) { status.innerText = `Cargando "${fontName}"...`; status.style.color = "#4e8cff"; }
+
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      document.head.appendChild(link);
+
+      document.fonts.load(`16px "${fontName}"`).then(() => {
+        const fontVal = `'${fontName}', sans-serif`;
+        if (!customLoadedFonts.some(f => f.name === fontName)) {
+          customLoadedFonts.push({ name: fontName, href: href, value: fontVal });
+        }
+
+        const selects = [document.getElementById('fontFamilyStudent'), document.getElementById('fontFamilySubject')];
+        selects.forEach(sel => {
+          if (!Array.from(sel.options).some(opt => opt.value.includes(fontName))) {
+            const opt = document.createElement('option');
+            opt.value = fontVal;
+            opt.textContent = `${fontName} (Google Font)`;
+            sel.appendChild(opt);
+          }
+        });
+
+        if (status) { status.innerText = `✓ ¡"${fontName}" lista!`; status.style.color = "#10b981"; }
+        renderSheet();
+        if (callback) callback(fontVal);
+      }).catch(() => {
+        if (status) { status.innerText = `❌ Error al cargar "${fontName}".`; status.style.color = "#ef4444"; }
+      });
+    }
+
+    // Sistema de Guardar y Cargar Proyecto (.JSON)
+    function setupProjectSaveLoad() {
+      const btnSave = document.getElementById('btnSaveProject');
+      const btnLoadTrigger = document.getElementById('btnLoadProjectTrigger');
+      const fileInput = document.getElementById('projectFileInput');
+      const status = document.getElementById('projectStatus');
+
+      btnSave.addEventListener('click', () => {
+        const subInputs = Array.from(document.querySelectorAll('.sub-name')).map(inp => inp.value);
+        const projectData = {
+          version: "1.0",
+          date: new Date().toISOString(),
+          settings: {
+            sheetFormat: document.getElementById('sheetFormat').value,
+            sheetOrientation: document.getElementById('sheetOrientation').value,
+            marginTop: document.getElementById('marginTop').value,
+            marginBottom: document.getElementById('marginBottom').value,
+            marginLeft: document.getElementById('marginLeft').value,
+            marginRight: document.getElementById('marginRight').value,
+            gapX: document.getElementById('gapX').value,
+            gapY: document.getElementById('gapY').value,
+            labelWidth: document.getElementById('labelWidth').value,
+            labelHeight: document.getElementById('labelHeight').value,
+            roundedCorners: document.getElementById('roundedCorners').value,
+            enableSideTab: document.getElementById('enableSideTab').checked,
+            showCutGuides: document.getElementById('showCutGuides').checked,
+            fontFamilyStudent: document.getElementById('fontFamilyStudent').value,
+            fontFamilySubject: document.getElementById('fontFamilySubject').value,
+            studentTextColor: document.getElementById('studentTextColor').value,
+            gradeTextColor: document.getElementById('gradeTextColor').value,
+            subjectTextColor: document.getElementById('subjectTextColor').value,
+            studentFontSizeScale: document.getElementById('studentFontSizeScale').value,
+            gradeFontSizeScale: document.getElementById('gradeFontSizeScale').value,
+            subjectFontSizeScale: document.getElementById('subjectFontSizeScale').value,
+            gradeGroupGap: document.getElementById('gradeGroupGap').value,
+            studentName: document.getElementById('studentName').value,
+            studentSurname: document.getElementById('studentSurname').value,
+            studentGrade: document.getElementById('studentGrade').value,
+            studentGroup: document.getElementById('studentGroup').value,
+            bgLabelColor: document.getElementById('bgLabelColor').value,
+            bgCardColor: document.getElementById('bgCardColor').value,
+            ribbonColor: document.getElementById('ribbonColor').value,
+            tabColor: document.getElementById('tabColor').value,
+            useSameImage: document.getElementById('useSameImage').checked,
+            subjects: subInputs,
+            customLoadedFonts: customLoadedFonts
+          },
+          transforms: layerTransforms,
+          images: assetDataUrls
+        };
+
+        const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const nameClean = (document.getElementById('studentName').value || 'proyecto').replace(/\s+/g, '_');
+        a.download = `plantilla_etiquetas_${nameClean}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        status.innerText = "✓ Proyecto guardado correctamente";
+        setTimeout(() => { status.innerText = ""; }, 4000);
+      });
+
+      btnLoadTrigger.addEventListener('click', () => fileInput.click());
+
+      fileInput.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = ev => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            loadProjectData(data);
+            status.innerText = "✓ Proyecto cargado con éxito";
+            setTimeout(() => { status.innerText = ""; }, 4000);
+          } catch (err) {
+            alert("Error al leer el archivo de proyecto: " + err.message);
+          }
+        };
+        reader.readAsText(file);
+        fileInput.value = "";
+      });
+    }
+
+    function loadProjectData(data) {
+      const s = data.settings;
+      if (!s) return;
+
+      // Cargar fuentes custom si venían en el archivo
+      if (s.customLoadedFonts && s.customLoadedFonts.length > 0) {
+        s.customLoadedFonts.forEach(f => {
+          loadGoogleFont(f.href || f.name);
+        });
+      }
+
+      // Restaurar inputs simples
+      const setVal = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
+      const setChecked = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.checked = val; };
+
+      setVal('sheetFormat', s.sheetFormat);
+      setVal('sheetOrientation', s.sheetOrientation);
+      setVal('marginTop', s.marginTop);
+      setVal('marginBottom', s.marginBottom);
+      setVal('marginLeft', s.marginLeft);
+      setVal('marginRight', s.marginRight);
+      setVal('gapX', s.gapX);
+      setVal('gapY', s.gapY);
+      setVal('labelWidth', s.labelWidth);
+      setVal('labelHeight', s.labelHeight);
+      setVal('roundedCorners', s.roundedCorners);
+      setChecked('enableSideTab', s.enableSideTab);
+      setChecked('showCutGuides', s.showCutGuides);
+      setVal('studentTextColor', s.studentTextColor);
+      setVal('gradeTextColor', s.gradeTextColor);
+      setVal('subjectTextColor', s.subjectTextColor);
+      setVal('studentFontSizeScale', s.studentFontSizeScale);
+      setVal('gradeFontSizeScale', s.gradeFontSizeScale);
+      setVal('subjectFontSizeScale', s.subjectFontSizeScale);
+      setVal('gradeGroupGap', s.gradeGroupGap);
+      setVal('studentName', s.studentName);
+      setVal('studentSurname', s.studentSurname);
+      setVal('studentGrade', s.studentGrade);
+      setVal('studentGroup', s.studentGroup);
+      setVal('bgLabelColor', s.bgLabelColor);
+      setVal('bgCardColor', s.bgCardColor);
+      setVal('ribbonColor', s.ribbonColor);
+      setVal('tabColor', s.tabColor);
+      setChecked('useSameImage', s.useSameImage);
+
+      document.getElementById('globalImageWrapper').style.display = s.useSameImage ? 'flex' : 'none';
+      document.getElementById('studentFontScaleVal').innerText = Math.round(s.studentFontSizeScale * 100) + '%';
+      document.getElementById('gradeFontScaleVal').innerText = Math.round(s.gradeFontSizeScale * 100) + '%';
+      document.getElementById('subjectFontScaleVal').innerText = Math.round(s.subjectFontSizeScale * 100) + '%';
+
+      // Restaurar transformaciones
+      if (data.transforms) {
+        Object.assign(layerTransforms, data.transforms);
+      }
+
+      // Restaurar imágenes
+      if (data.images) {
+        const loadImg = (url, onLoad) => {
+          if (!url) { onLoad(null, null); return; }
+          const img = new Image();
+          img.onload = () => onLoad(img, url);
+          img.src = url;
+        };
+
+        loadImg(data.images.bgLabel, (img, url) => { assets.bgLabel = img; assetDataUrls.bgLabel = url; });
+        loadImg(data.images.bgCard, (img, url) => { assets.bgCard = img; assetDataUrls.bgCard = url; });
+        loadImg(data.images.ribbonImg, (img, url) => { assets.ribbonImg = img; assetDataUrls.ribbonImg = url; });
+        loadImg(data.images.globalIcon, (img, url) => { assets.globalIcon = img; assetDataUrls.globalIcon = url; });
+
+        assets.individualIcons = {};
+        assetDataUrls.individualIcons = {};
+        if (data.images.individualIcons) {
+          Object.keys(data.images.individualIcons).forEach(k => {
+            loadImg(data.images.individualIcons[k], (img, url) => {
+              assets.individualIcons[k] = img;
+              assetDataUrls.individualIcons[k] = url;
+            });
+          });
+        }
+      }
+
+      updateGrid();
+
+      // Restaurar asignaturas
+      if (s.subjects && s.subjects.length > 0) {
+        setTimeout(() => {
+          const subInputs = document.querySelectorAll('.sub-name');
+          s.subjects.forEach((subj, i) => {
+            if (subInputs[i]) subInputs[i].value = subj;
+          });
+          if (s.fontFamilyStudent) setVal('fontFamilyStudent', s.fontFamilyStudent);
+          if (s.fontFamilySubject) setVal('fontFamilySubject', s.fontFamilySubject);
+          renderSheet();
+        }, 100);
+      }
+    }
+
+    function getActiveTransform() {
+      const activeLayer = document.getElementById('activeTransformLayer').value;
+      if (activeLayer === 'bgLabel') return layerTransforms.bgLabel;
+      if (activeLayer === 'bgCard') return layerTransforms.bgCard;
+      if (activeLayer === 'ribbon') return layerTransforms.ribbon;
+
+      const isGlobal = document.getElementById('useSameImage').checked;
+      if (isGlobal) return layerTransforms.iconGlobal;
+      if (!layerTransforms.iconIndividual[selectedLabelIndex]) {
+        layerTransforms.iconIndividual[selectedLabelIndex] = defaultTransform();
+      }
+      return layerTransforms.iconIndividual[selectedLabelIndex];
+    }
+
+    function applyZoom(factor) {
+      const t = getActiveTransform();
+      t.scale = Math.max(0.1, Math.min(8.0, t.scale * factor));
+      renderSheet();
+    }
+
+    function setupInteractiveImageControls() {
+      let isDragging = false;
+      let lastX = 0, lastY = 0;
+
+      canvas.addEventListener('mousedown', e => {
+        isDragging = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        previewContainer.focus();
+      });
+
+      window.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        lastX = e.clientX;
+        lastY = e.clientY;
+
+        const t = getActiveTransform();
+        const sensitivity = 2.5;
+        t.offsetX += dx * sensitivity;
+        t.offsetY += dy * sensitivity;
+        renderSheet();
+      });
+
+      window.addEventListener('mouseup', () => { isDragging = false; });
+
+      canvas.addEventListener('wheel', e => {
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.06 : 0.94;
+        applyZoom(factor);
+      }, { passive: false });
+
+      window.addEventListener('keydown', e => {
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+          if (document.activeElement.tagName === 'INPUT' && document.activeElement.type === 'text') return;
+
+          e.preventDefault();
+          const step = e.shiftKey ? 20 : 5;
+          const t = getActiveTransform();
+
+          if (e.key === 'ArrowUp') t.offsetY -= step;
+          if (e.key === 'ArrowDown') t.offsetY += step;
+          if (e.key === 'ArrowLeft') t.offsetX -= step;
+          if (e.key === 'ArrowRight') t.offsetX += step;
+
+          renderSheet();
+        }
+      });
+    }
+
+    function handleImageUpload(e, callback) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const dataUrl = ev.target.result;
+        const img = new Image();
+        img.onload = () => callback(img, dataUrl);
+        img.src = dataUrl;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function getSheetDimensions() {
+      const format = document.getElementById('sheetFormat').value;
+      const orientation = document.getElementById('sheetOrientation').value;
+      let w = format === 'letter' ? 21.59 : 21.0;
+      let h = format === 'letter' ? 27.94 : 29.7;
+      if (orientation === 'landscape') [w, h] = [h, w];
+      return { w, h };
+    }
+
+    let gridConfig = { cols: 2, rows: 4, total: 8 };
+
+    function updateGrid() {
+      const sheet = getSheetDimensions();
+      const mTop = parseFloat(document.getElementById('marginTop').value) || 0;
+      const mBottom = parseFloat(document.getElementById('marginBottom').value) || 0;
+      const mLeft = parseFloat(document.getElementById('marginLeft').value) || 0;
+      const mRight = parseFloat(document.getElementById('marginRight').value) || 0;
+
+      const lWidth = parseFloat(document.getElementById('labelWidth').value) || 10.5;
+      const lHeight = parseFloat(document.getElementById('labelHeight').value) || 4.0;
+
+      const gX = parseFloat(document.getElementById('gapX').value) || 0;
+      const gY = parseFloat(document.getElementById('gapY').value) || 0;
+
+      const availW = sheet.w - (mLeft + mRight);
+      const availH = sheet.h - (mTop + mBottom);
+
+      const cols = Math.max(1, Math.floor((availW + gX) / (lWidth + gX)));
+      const rows = Math.max(1, Math.floor((availH + gY) / (lHeight + gY)));
+      const total = cols * rows;
+
+      gridConfig = { cols, rows, total, sheetW: sheet.w, sheetH: sheet.h, mTop, mLeft, lWidth, lHeight, gX, gY };
+
+      const existingValues = Array.from(document.querySelectorAll('.sub-name')).map(i => i.value);
+      subjectsContainer.innerHTML = '';
+      for (let i = 0; i < total; i++) {
+        const row = document.createElement('div');
+        row.className = `subject-row ${i === selectedLabelIndex ? 'selected' : ''}`;
+        row.dataset.index = i;
+        const val = existingValues[i] || defaultSubjects[i] || `Materia ${i + 1}`;
+        row.innerHTML = `
+          <span>#${i + 1}</span>
+          <input type="text" class="sub-name" data-index="${i}" value="${val}">
+          <input type="file" class="sub-img" data-index="${i}" accept="image/*">
+        `;
+        row.addEventListener('click', () => {
+          document.querySelectorAll('.subject-row').forEach(r => r.classList.remove('selected'));
+          row.classList.add('selected');
+          selectedLabelIndex = i;
+          renderSheet();
+        });
+        subjectsContainer.appendChild(row);
+      }
+
+      document.querySelectorAll('.sub-name').forEach(inp => inp.addEventListener('input', renderSheet));
+      document.querySelectorAll('.sub-img').forEach(inp => {
+        inp.addEventListener('change', e => {
+          const idx = e.target.dataset.index;
+          handleImageUpload(e, (img, url) => {
+            assets.individualIcons[idx] = img;
+            assetDataUrls.individualIcons[idx] = url;
+            renderSheet();
+          });
+        });
+      });
+
+      sheetInfo.innerText = `Hoja: ${sheet.w} × ${sheet.h} cm | Cuadrícula: ${cols} col × ${rows} filas (${total} etiquetas) | Separación: ${gX}cm × ${gY}cm`;
+      renderSheet();
+    }
+
+    function renderSheet() {
+      const { sheetW, sheetH, cols, rows, mTop, mLeft, lWidth, lHeight, gX, gY } = gridConfig;
+
+      canvas.width = cmToPx(sheetW);
+      canvas.height = cmToPx(sheetH);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const labelW_px = cmToPx(lWidth);
+      const labelH_px = cmToPx(lHeight);
+      const gapX_px = cmToPx(gX);
+      const gapY_px = cmToPx(gY);
+      const startX = cmToPx(mLeft);
+      const startY = cmToPx(mTop);
+
+      const sName = document.getElementById('studentName').value;
+      const sSurname = document.getElementById('studentSurname').value;
+      const sGrade = document.getElementById('studentGrade').value;
+      const sGroup = document.getElementById('studentGroup').value;
+      const sameImg = document.getElementById('useSameImage').checked;
+
+      const fontStudent = document.getElementById('fontFamilyStudent').value;
+      const fontSubject = document.getElementById('fontFamilySubject').value;
+      const colorStudent = document.getElementById('studentTextColor').value;
+      const colorGrade = document.getElementById('gradeTextColor').value;
+      const colorSubject = document.getElementById('subjectTextColor').value;
+
+      const scaleStudent = parseFloat(document.getElementById('studentFontSizeScale').value) || 1.0;
+      const scaleGrade = parseFloat(document.getElementById('gradeFontSizeScale').value) || 1.0;
+      const scaleSubject = parseFloat(document.getElementById('subjectFontSizeScale').value) || 1.0;
+      const gradeGap = parseFloat(document.getElementById('gradeGroupGap').value) || 0.4;
+
+      const isRounded = document.getElementById('roundedCorners').value === 'rounded';
+      const enableTab = document.getElementById('enableSideTab').checked;
+      const showGuides = document.getElementById('showCutGuides').checked;
+
+      const subInputs = document.querySelectorAll('.sub-name');
+
+      let idx = 0;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = startX + (c * (labelW_px + gapX_px));
+          const y = startY + (r * (labelH_px + gapY_px));
+          const subject = subInputs[idx] ? subInputs[idx].value : "";
+          const icon = sameImg ? assets.globalIcon : (assets.individualIcons[idx] || assets.globalIcon);
+          const iconTransform = sameImg ? layerTransforms.iconGlobal : (layerTransforms.iconIndividual[idx] || defaultTransform());
+
+          drawLabel(x, y, labelW_px, labelH_px, {
+            name: sName,
+            surname: sSurname,
+            grade: sGrade,
+            group: sGroup,
+            gradeGap: cmToPx(gradeGap * 0.1),
+            subject: subject,
+            icon: icon,
+            iconTransform: iconTransform,
+            fontStudent,
+            fontSubject,
+            colorStudent,
+            colorGrade,
+            colorSubject,
+            scaleStudent,
+            scaleGrade,
+            scaleSubject,
+            isRounded,
+            enableTab,
+            showGuides
+          });
+
+          idx++;
+        }
+      }
+    }
+
+    function drawLabel(x, y, w, h, data) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      const radius = data.isRounded ? h * 0.08 : 0;
+
+      // 1. Fondo General de Etiqueta
+      ctx.beginPath();
+      if (data.isRounded) {
+        ctx.roundRect(0, 0, w, h, radius);
+      } else {
+        ctx.rect(0, 0, w, h);
+      }
+      ctx.clip();
+
+      if (assets.bgLabel) {
+        drawImageWithTransform(ctx, assets.bgLabel, 0, 0, w, h, layerTransforms.bgLabel);
+      } else {
+        ctx.fillStyle = document.getElementById('bgLabelColor').value;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      // 2. Pestaña lateral izquierda (Opcional)
+      if (data.enableTab) {
+        const tabW = w * 0.04;
+        const tabH = h * 0.12;
+        const tabY = h * 0.28;
+        ctx.fillStyle = document.getElementById('tabColor').value;
+        ctx.fillRect(0, tabY, tabW, tabH);
+      }
+
+      // 3. Tarjeta central de datos
+      const cardX = data.enableTab ? w * 0.04 : w * 0.03;
+      const cardY = h * 0.10;
+      const cardW = data.enableTab ? w * 0.64 : w * 0.65;
+      const cardH = h * 0.80;
+      const cardRadius = data.isRounded ? h * 0.06 : 0;
+
+      ctx.save();
+      ctx.beginPath();
+      if (data.isRounded) {
+        ctx.roundRect(cardX, cardY, cardW, cardH, cardRadius);
+      } else {
+        ctx.rect(cardX, cardY, cardW, cardH);
+      }
+      ctx.clip();
+
+      if (assets.bgCard) {
+        drawImageWithTransform(ctx, assets.bgCard, cardX, cardY, cardW, cardH, layerTransforms.bgCard);
+      } else {
+        ctx.fillStyle = document.getElementById('bgCardColor').value;
+        ctx.fillRect(cardX, cardY, cardW, cardH);
+
+        // Cuadrícula sutil
+        ctx.strokeStyle = "rgba(70, 130, 180, 0.2)";
+        ctx.lineWidth = 1.5;
+        const gridStep = h * 0.07;
+        for (let gx = cardX; gx < cardX + cardW; gx += gridStep) {
+          ctx.beginPath(); ctx.moveTo(gx, cardY); ctx.lineTo(gx, cardY + cardH); ctx.stroke();
+        }
+        for (let gy = cardY; gy < cardY + cardH; gy += gridStep) {
+          ctx.beginPath(); ctx.moveTo(cardX, gy); ctx.lineTo(cardX + cardW, gy); ctx.stroke();
+        }
+      }
+
+      // 4. Cinta inferior de la Asignatura
+      const ribbonH = cardH * 0.32;
+      const ribbonY = cardY + cardH - ribbonH;
+
+      if (assets.ribbonImg) {
+        drawImageWithTransform(ctx, assets.ribbonImg, cardX, ribbonY, cardW, ribbonH, layerTransforms.ribbon);
+      } else {
+        ctx.fillStyle = document.getElementById('ribbonColor').value;
+        ctx.fillRect(cardX, ribbonY, cardW, ribbonH);
+      }
+
+      // Texto de Asignatura con autoajuste inteligente por etiqueta (1 o 2 renglones sin afectar al resto)
+      const maxSubjectW = cardW * 0.92;
+      const baseSubjectFontSize = Math.round(ribbonH * 0.58 * data.scaleSubject);
+      drawAdaptiveSubjectText(
+        ctx, 
+        data.subject, 
+        cardX + (cardW / 2), 
+        ribbonY + (ribbonH / 2), 
+        maxSubjectW, 
+        ribbonH, 
+        data.fontSubject, 
+        baseSubjectFontSize, 
+        data.colorSubject
+      );
+
+      // Borde de la tarjeta
+      ctx.strokeStyle = "rgba(0,0,0,0.15)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+
+      // 5. Textos del Alumno (Nombre, Apellidos)
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const textAreaH = cardH - ribbonH;
+
+      ctx.fillStyle = data.colorStudent;
+      const nameFontSize = Math.round(textAreaH * 0.28 * data.scaleStudent);
+      ctx.font = `${nameFontSize}px ${data.fontStudent}`;
+      ctx.fillText(data.name, cardX + (cardW / 2), cardY + (textAreaH * 0.24));
+      ctx.fillText(data.surname, cardX + (cardW / 2), cardY + (textAreaH * 0.54));
+
+      // 6. Texto Grado y Salón
+      ctx.fillStyle = data.colorGrade;
+      const gradeFontSize = Math.round(textAreaH * 0.23 * data.scaleGrade);
+      ctx.font = `${gradeFontSize}px ${data.fontStudent}`;
+
+      const gradeText = data.grade.trim();
+      const groupText = data.group.trim();
+      const gradeY = cardY + (textAreaH * 0.84);
+
+      if (gradeText && groupText) {
+        const gradeW = ctx.measureText(gradeText).width;
+        const groupW = ctx.measureText(groupText).width;
+        const totalW = gradeW + data.gradeGap + groupW;
+        const startTextX = (cardX + (cardW / 2)) - (totalW / 2);
+
+        ctx.textAlign = "left";
+        ctx.fillText(gradeText, startTextX, gradeY);
+        ctx.fillText(groupText, startTextX + gradeW + data.gradeGap, gradeY);
+      } else {
+        ctx.textAlign = "center";
+        ctx.fillText(`${gradeText} ${groupText}`.trim(), cardX + (cardW / 2), gradeY);
+      }
+
+      // 7. Ilustración Lateral con Encuadre, Zoom y Pan
+      const iconAreaX = cardX + cardW;
+      const iconAreaW = w - iconAreaX;
+      
+      if (data.icon) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(iconAreaX, 0, iconAreaW, h);
+        ctx.clip();
+
+        const padding = w * 0.02;
+        const maxW = iconAreaW - (padding * 2);
+        const maxH = h - (padding * 2);
+
+        const aspect = data.icon.width / data.icon.height;
+        let baseW = maxW;
+        let baseH = baseW / aspect;
+
+        if (baseH > maxH) {
+          baseH = maxH;
+          baseW = baseH * aspect;
+        }
+
+        const finalW = baseW * data.iconTransform.scale;
+        const finalH = baseH * data.iconTransform.scale;
+
+        const centerX = iconAreaX + (iconAreaW / 2) + data.iconTransform.offsetX;
+        const centerY = (h / 2) + data.iconTransform.offsetY;
+
+        ctx.drawImage(data.icon, centerX - (finalW / 2), centerY - (finalH / 2), finalW, finalH);
+        ctx.restore();
+      }
+
+      ctx.restore();
+
+      // Guía de corte exterior
+      if (data.showGuides) {
+        ctx.strokeStyle = "rgba(0,0,0,0.12)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, w, h);
+      }
+    }
+
+    function drawImageWithTransform(ctx, img, areaX, areaY, areaW, areaH, transform) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(areaX, areaY, areaW, areaH);
+      ctx.clip();
+
+      const imgAspect = img.width / img.height;
+      const areaAspect = areaW / areaH;
+      let baseW, baseH;
+
+      if (imgAspect > areaAspect) {
+        baseH = areaH;
+        baseW = areaH * imgAspect;
+      } else {
+        baseW = areaW;
+        baseH = areaW / imgAspect;
+      }
+
+      const finalW = baseW * transform.scale;
+      const finalH = baseH * transform.scale;
+
+      const centerX = areaX + (areaW / 2) + transform.offsetX;
+      const centerY = areaY + (areaH / 2) + transform.offsetY;
+
+      ctx.drawImage(img, centerX - (finalW / 2), centerY - (finalH / 2), finalW, finalH);
+      ctx.restore();
+    }
+
+    // Dibuja el texto de la asignatura adaptándose si es muy largo
+    function drawAdaptiveSubjectText(ctx, text, centerX, centerY, maxWidth, maxHeight, fontFace, baseFontSize, color) {
+      if (!text) return;
+      ctx.fillStyle = color;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      let fontSize = baseFontSize;
+      ctx.font = `bold ${fontSize}px ${fontFace}`;
+
+      // Si cabe completo en una sola línea en el tamaño original, se dibuja directo
+      if (ctx.measureText(text).width <= maxWidth) {
+        ctx.fillText(text, centerX, centerY);
+        return;
+      }
+
+      // Si tiene más de una palabra, lo dividimos en 2 renglones balanceados
+      const words = text.trim().split(/\s+/);
+      if (words.length > 1) {
+        let bestSplit = 1;
+        let minDiff = Infinity;
+        for (let i = 1; i < words.length; i++) {
+          const l1 = words.slice(0, i).join(" ");
+          const l2 = words.slice(i).join(" ");
+          const diff = Math.abs(l1.length - l2.length);
+          if (diff < minDiff) {
+            minDiff = diff;
+            bestSplit = i;
+          }
+        }
+
+        const line1 = words.slice(0, bestSplit).join(" ");
+        const line2 = words.slice(bestSplit).join(" ");
+
+        // Reducir la escala de fuente para que ambos renglones quepan en alto y ancho
+        let targetSize = Math.min(baseFontSize * 0.78, (maxHeight / 2) * 0.85);
+        ctx.font = `bold ${targetSize}px ${fontFace}`;
+
+        while ((ctx.measureText(line1).width > maxWidth || ctx.measureText(line2).width > maxWidth) && targetSize > 8) {
+          targetSize -= 0.5;
+          ctx.font = `bold ${targetSize}px ${fontFace}`;
+        }
+
+        const lineSpacing = targetSize * 1.15;
+        ctx.fillText(line1, centerX, centerY - (lineSpacing / 2));
+        ctx.fillText(line2, centerX, centerY + (lineSpacing / 2));
+        return;
+      }
+
+      // Si es una sola palabra muy larga (ej. "Electroquímica"), reducimos el tamaño en 1 sola línea
+      while (ctx.measureText(text).width > maxWidth && fontSize > 8) {
+        fontSize -= 0.5;
+        ctx.font = `bold ${fontSize}px ${fontFace}`;
+      }
+      ctx.fillText(text, centerX, centerY);
+    }
+
+    function exportPNG() {
+      const link = document.createElement('a');
+      const nameClean = (document.getElementById('studentName').value || 'etiquetas').replace(/\s+/g, '_');
+      link.download = `etiquetas_${nameClean}_300dpi.png`;
+      link.href = canvas.toDataURL('image/png', 1.0);
+      link.click();
+    }
+
+    function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const { sheetW, sheetH } = gridConfig;
+      const orientation = sheetW > sheetH ? 'landscape' : 'portrait';
+
+      const pdf = new jsPDF({
+        orientation: orientation,
+        unit: 'cm',
+        format: [sheetW, sheetH]
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      pdf.addImage(imgData, 'JPEG', 0, 0, sheetW, sheetH);
+      const nameClean = (document.getElementById('studentName').value || 'etiquetas').replace(/\s+/g, '_');
+      pdf.save(`etiquetas_${nameClean}_impresion.pdf`);
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
