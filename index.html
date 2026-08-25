@@ -411,38 +411,43 @@
       </div>
     </div>
 
-    <!-- 6. Control de Encuadre, Pan & Zoom de Capas -->
+    <!-- 6. Control de Ilustración Lateral -->
     <div class="form-group">
-      <div class="section-title">6. Encuadre, Zoom y Posición de Imágenes</div>
-      <div class="form-group">
-        <label><b>Capa a Mover / Ajustar:</b></label>
-        <select id="activeTransformLayer">
-          <option value="icon">Ilustración Lateral (Insecto / Gráfico)</option>
-          <option value="bgLabel">Textura Fondo Etiqueta</option>
-          <option value="bgCard">Textura Bloque de Texto</option>
-          <option value="ribbon">Textura Cinta Asignatura</option>
-        </select>
-      </div>
-
+      <div class="section-title">6. Ilustración Lateral</div>
       <div class="form-group">
         <label>
-          <input type="checkbox" id="useSameImage" checked> Misma ilustración en todas las etiquetas
+          <input type="checkbox" id="enableSideIllustration" checked> Activar Ilustración Lateral
         </label>
       </div>
-      <div class="form-group" id="globalImageWrapper">
-        <label>Imagen Global de Ilustración</label>
-        <input type="file" id="globalImageInput" accept="image/*">
-      </div>
-
-      <div class="help-pill">
-        🖱️ <b>Arrastra en el lienzo</b> para encuadrar la capa seleccionada.<br>
-        🔍 <b>Rueda / Pad:</b> Zoom In / Out.<br>
-        ⌨️ <b>Teclas de cursor:</b> Ajuste fino (+Shift: rápido).
-      </div>
-      <div style="display: flex; gap: 6px; margin-top: 4px;">
-        <button type="button" class="mini-btn" id="btnZoomIn">➕ Zoom</button>
-        <button type="button" class="mini-btn" id="btnZoomOut">➖ Zoom</button>
-        <button type="button" class="mini-btn" id="btnResetTransform">↺ Centrar Capa</button>
+      <div id="illustrationOptionsWrapper" style="display: flex; flex-direction: column; gap: 6px; margin-top: 2px;">
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="useSameImage" checked> Misma ilustración en todas las etiquetas
+          </label>
+        </div>
+        <div class="form-group" id="globalImageWrapper">
+          <label>Imagen Global de Ilustración</label>
+          <input type="file" id="globalImageInput" accept="image/*">
+        </div>
+        <div class="form-group">
+          <label><b>Capa a Mover / Ajustar:</b></label>
+          <select id="activeTransformLayer">
+            <option value="icon">Ilustración Lateral (Insecto / Gráfico)</option>
+            <option value="bgLabel">Textura Fondo Etiqueta</option>
+            <option value="bgCard">Textura Bloque de Texto</option>
+            <option value="ribbon">Textura Cinta Asignatura</option>
+          </select>
+        </div>
+        <div class="help-pill">
+          🖱️ <b>Arrastra en el lienzo</b> para encuadrar la capa seleccionada.<br>
+          🔍 <b>Rueda / Pad:</b> Zoom In / Out.<br>
+          ⌨️ <b>Teclas de cursor:</b> Ajuste fino (+Shift: rápido).
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button type="button" class="mini-btn" id="btnZoomIn">➕ Zoom</button>
+          <button type="button" class="mini-btn" id="btnZoomOut">➖ Zoom</button>
+          <button type="button" class="mini-btn" id="btnResetTransform">↺ Centrar Capa</button>
+        </div>
       </div>
     </div>
 
@@ -470,7 +475,6 @@
     const CM_TO_INCH = 1 / 2.54;
     const cmToPx = cm => Math.round(cm * CM_TO_INCH * DPI);
 
-    // Estado global de imágenes y sus dataURLs para guardado
     const assets = {
       bgLabel: null,
       bgCard: null,
@@ -487,7 +491,6 @@
       individualIcons: {}
     };
 
-    // Transformaciones por capa: { scale, offsetX, offsetY }
     const defaultTransform = () => ({ scale: 1.0, offsetX: 0, offsetY: 0 });
     const layerTransforms = {
       bgLabel: defaultTransform(),
@@ -534,7 +537,10 @@
             document.getElementById('subjectFontScaleVal').innerText = Math.round(input.value * 100) + '%';
           }
 
-          if (['sheetFormat', 'sheetOrientation', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'labelWidth', 'labelHeight', 'gapX', 'gapY'].includes(input.id)) {
+          if (['sheetFormat', 'sheetOrientation', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'labelWidth', 'labelHeight', 'gapX', 'gapY', 'enableSideIllustration'].includes(input.id)) {
+            if (input.id === 'enableSideIllustration') {
+              document.getElementById('illustrationOptionsWrapper').style.display = input.checked ? 'flex' : 'none';
+            }
             updateGrid();
           } else {
             renderSheet();
@@ -542,7 +548,6 @@
         });
       });
 
-      // Cargas de texturas e imágenes
       document.getElementById('bgLabelImage').addEventListener('change', e => handleImageUpload(e, (img, url) => { assets.bgLabel = img; assetDataUrls.bgLabel = url; renderSheet(); }));
       document.getElementById('bgCardImage').addEventListener('change', e => handleImageUpload(e, (img, url) => { assets.bgCard = img; assetDataUrls.bgCard = url; renderSheet(); }));
       document.getElementById('ribbonImage').addEventListener('change', e => handleImageUpload(e, (img, url) => { assets.ribbonImg = img; assetDataUrls.ribbonImg = url; renderSheet(); }));
@@ -556,7 +561,6 @@
       document.getElementById('btnExportPNG').addEventListener('click', exportPNG);
       document.getElementById('btnExportPDF').addEventListener('click', exportPDF);
 
-      // Botones rápidos de transformación
       document.getElementById('btnZoomIn').addEventListener('click', () => applyZoom(1.1));
       document.getElementById('btnZoomOut').addEventListener('click', () => applyZoom(0.9));
       document.getElementById('btnResetTransform').addEventListener('click', () => {
@@ -567,14 +571,12 @@
         renderSheet();
       });
 
-      // Cargador de Google Fonts
       document.getElementById('btnAddGoogleFont').addEventListener('click', () => {
         const val = document.getElementById('customGoogleFontInput').value.trim();
         if (val) loadGoogleFont(val);
       });
     }
 
-    // Procesar y cargar fuentes de Google Fonts
     function loadGoogleFont(input, callback) {
       const status = document.getElementById('fontLoadStatus');
       let fontName = '';
@@ -635,7 +637,6 @@
       });
     }
 
-    // Sistema de Guardar y Cargar Proyecto (.JSON)
     function setupProjectSaveLoad() {
       const btnSave = document.getElementById('btnSaveProject');
       const btnLoadTrigger = document.getElementById('btnLoadProjectTrigger');
@@ -645,7 +646,7 @@
       btnSave.addEventListener('click', () => {
         const subInputs = Array.from(document.querySelectorAll('.sub-name')).map(inp => inp.value);
         const projectData = {
-          version: "1.0",
+          version: "1.1",
           date: new Date().toISOString(),
           settings: {
             sheetFormat: document.getElementById('sheetFormat').value,
@@ -660,6 +661,7 @@
             labelHeight: document.getElementById('labelHeight').value,
             roundedCorners: document.getElementById('roundedCorners').value,
             enableSideTab: document.getElementById('enableSideTab').checked,
+            enableSideIllustration: document.getElementById('enableSideIllustration').checked,
             showCutGuides: document.getElementById('showCutGuides').checked,
             fontFamilyStudent: document.getElementById('fontFamilyStudent').value,
             fontFamilySubject: document.getElementById('fontFamilySubject').value,
@@ -725,14 +727,12 @@
       const s = data.settings;
       if (!s) return;
 
-      // Cargar fuentes custom si venían en el archivo
       if (s.customLoadedFonts && s.customLoadedFonts.length > 0) {
         s.customLoadedFonts.forEach(f => {
           loadGoogleFont(f.href || f.name);
         });
       }
 
-      // Restaurar inputs simples
       const setVal = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
       const setChecked = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.checked = val; };
 
@@ -748,6 +748,7 @@
       setVal('labelHeight', s.labelHeight);
       setVal('roundedCorners', s.roundedCorners);
       setChecked('enableSideTab', s.enableSideTab);
+      setChecked('enableSideIllustration', s.enableSideIllustration !== undefined ? s.enableSideIllustration : true);
       setChecked('showCutGuides', s.showCutGuides);
       setVal('studentTextColor', s.studentTextColor);
       setVal('gradeTextColor', s.gradeTextColor);
@@ -767,16 +768,15 @@
       setChecked('useSameImage', s.useSameImage);
 
       document.getElementById('globalImageWrapper').style.display = s.useSameImage ? 'flex' : 'none';
+      document.getElementById('illustrationOptionsWrapper').style.display = (s.enableSideIllustration !== false) ? 'flex' : 'none';
       document.getElementById('studentFontScaleVal').innerText = Math.round(s.studentFontSizeScale * 100) + '%';
       document.getElementById('gradeFontScaleVal').innerText = Math.round(s.gradeFontSizeScale * 100) + '%';
       document.getElementById('subjectFontScaleVal').innerText = Math.round(s.subjectFontSizeScale * 100) + '%';
 
-      // Restaurar transformaciones
       if (data.transforms) {
         Object.assign(layerTransforms, data.transforms);
       }
 
-      // Restaurar imágenes
       if (data.images) {
         const loadImg = (url, onLoad) => {
           if (!url) { onLoad(null, null); return; }
@@ -804,7 +804,6 @@
 
       updateGrid();
 
-      // Restaurar asignaturas
       if (s.subjects && s.subjects.length > 0) {
         setTimeout(() => {
           const subInputs = document.querySelectorAll('.sub-name');
@@ -993,6 +992,7 @@
       const sGrade = document.getElementById('studentGrade').value;
       const sGroup = document.getElementById('studentGroup').value;
       const sameImg = document.getElementById('useSameImage').checked;
+      const enableSideIllustration = document.getElementById('enableSideIllustration').checked;
 
       const fontStudent = document.getElementById('fontFamilyStudent').value;
       const fontSubject = document.getElementById('fontFamilySubject').value;
@@ -1017,7 +1017,7 @@
           const x = startX + (c * (labelW_px + gapX_px));
           const y = startY + (r * (labelH_px + gapY_px));
           const subject = subInputs[idx] ? subInputs[idx].value : "";
-          const icon = sameImg ? assets.globalIcon : (assets.individualIcons[idx] || assets.globalIcon);
+          const icon = enableSideIllustration ? (sameImg ? assets.globalIcon : (assets.individualIcons[idx] || assets.globalIcon)) : null;
           const iconTransform = sameImg ? layerTransforms.iconGlobal : (layerTransforms.iconIndividual[idx] || defaultTransform());
 
           drawLabel(x, y, labelW_px, labelH_px, {
@@ -1039,6 +1039,7 @@
             scaleSubject,
             isRounded,
             enableTab,
+            enableSideIllustration,
             showGuides
           });
 
@@ -1069,7 +1070,7 @@
         ctx.fillRect(0, 0, w, h);
       }
 
-      // 2. Pestaña lateral izquierda (Opcional)
+      // 2. Pestaña lateral izquierda (Opcional, solo si está activa y hay ilustración o se desea)
       if (data.enableTab) {
         const tabW = w * 0.04;
         const tabH = h * 0.12;
@@ -1078,10 +1079,18 @@
         ctx.fillRect(0, tabY, tabW, tabH);
       }
 
-      // 3. Tarjeta central de datos
-      const cardX = data.enableTab ? w * 0.04 : w * 0.03;
+      // 3. Tarjeta central de datos (Se expande si no hay ilustración lateral)
+      let cardX, cardW;
+      if (data.enableSideIllustration) {
+        cardX = data.enableTab ? w * 0.04 : w * 0.03;
+        cardW = data.enableTab ? w * 0.64 : w * 0.65;
+      } else {
+        // Centrado automático y ancho ampliado ocupando casi todo el fondo
+        cardW = data.enableTab ? w * 0.90 : w * 0.94;
+        cardX = (w - cardW) / 2;
+      }
+
       const cardY = h * 0.10;
-      const cardW = data.enableTab ? w * 0.64 : w * 0.65;
       const cardH = h * 0.80;
       const cardRadius = data.isRounded ? h * 0.06 : 0;
 
@@ -1123,7 +1132,7 @@
         ctx.fillRect(cardX, ribbonY, cardW, ribbonH);
       }
 
-      // Texto de Asignatura con autoajuste inteligente por etiqueta (1 o 2 renglones sin afectar al resto)
+      // Texto de Asignatura con autoajuste inteligente
       const maxSubjectW = cardW * 0.92;
       const baseSubjectFontSize = Math.round(ribbonH * 0.58 * data.scaleSubject);
       drawAdaptiveSubjectText(
@@ -1178,11 +1187,11 @@
         ctx.fillText(`${gradeText} ${groupText}`.trim(), cardX + (cardW / 2), gradeY);
       }
 
-      // 7. Ilustración Lateral con Encuadre, Zoom y Pan
-      const iconAreaX = cardX + cardW;
-      const iconAreaW = w - iconAreaX;
-      
-      if (data.icon) {
+      // 7. Ilustración Lateral (Solo si está habilitada)
+      if (data.enableSideIllustration && data.icon) {
+        const iconAreaX = cardX + cardW;
+        const iconAreaW = w - iconAreaX;
+
         ctx.save();
         ctx.beginPath();
         ctx.rect(iconAreaX, 0, iconAreaW, h);
@@ -1249,7 +1258,6 @@
       ctx.restore();
     }
 
-    // Dibuja el texto de la asignatura adaptándose si es muy largo
     function drawAdaptiveSubjectText(ctx, text, centerX, centerY, maxWidth, maxHeight, fontFace, baseFontSize, color) {
       if (!text) return;
       ctx.fillStyle = color;
@@ -1259,13 +1267,11 @@
       let fontSize = baseFontSize;
       ctx.font = `bold ${fontSize}px ${fontFace}`;
 
-      // Si cabe completo en una sola línea en el tamaño original, se dibuja directo
       if (ctx.measureText(text).width <= maxWidth) {
         ctx.fillText(text, centerX, centerY);
         return;
       }
 
-      // Si tiene más de una palabra, lo dividimos en 2 renglones balanceados
       const words = text.trim().split(/\s+/);
       if (words.length > 1) {
         let bestSplit = 1;
@@ -1283,7 +1289,6 @@
         const line1 = words.slice(0, bestSplit).join(" ");
         const line2 = words.slice(bestSplit).join(" ");
 
-        // Reducir la escala de fuente para que ambos renglones quepan en alto y ancho
         let targetSize = Math.min(baseFontSize * 0.78, (maxHeight / 2) * 0.85);
         ctx.font = `bold ${targetSize}px ${fontFace}`;
 
@@ -1298,7 +1303,6 @@
         return;
       }
 
-      // Si es una sola palabra muy larga (ej. "Electroquímica"), reducimos el tamaño en 1 sola línea
       while (ctx.measureText(text).width > maxWidth && fontSize > 8) {
         fontSize -= 0.5;
         ctx.font = `bold ${fontSize}px ${fontFace}`;
