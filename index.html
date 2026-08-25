@@ -16,8 +16,6 @@
       --card-bg: #23232f;
       --text: #ececf3;
       --accent: #4e8cff;
-      --accent-hover: #3b74db;
-      --success: #10b981;
       --border: #3b3b4d;
       --highlight: #60a5fa;
     }
@@ -32,24 +30,49 @@
       background: var(--card-bg);
       border-right: 1px solid var(--border);
       overflow-y: auto;
-      padding: 18px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 12px;
     }
-    .section-title {
+    
+    /* Estilo de Acordeones nativos y seguros */
+    details {
+      background: #1c1c26;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    details[open] {
+      border-color: var(--accent);
+    }
+    summary {
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: #9ea2be;
-      margin-bottom: 7px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 4px;
+      background: #20202c;
+      padding: 10px 12px;
       font-weight: 700;
+      cursor: pointer;
+      user-select: none;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
+    summary:hover {
+      background: #292938;
+      color: #fff;
+    }
+    .accordion-content {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid var(--border);
+    }
+
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
     .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
@@ -69,7 +92,7 @@
     .range-wrap span { font-size: 11px; color: #9da0b5; min-width: 35px; }
 
     .help-pill {
-      background: #191924;
+      background: #15151c;
       border-left: 3px solid var(--accent);
       padding: 7px 10px;
       font-size: 11px;
@@ -84,7 +107,7 @@
       grid-template-columns: 20px 1.2fr 1fr;
       gap: 5px;
       align-items: center;
-      background: #1b1b26;
+      background: #15151c;
       padding: 5px 7px;
       border-radius: 5px;
       font-size: 11px;
@@ -95,7 +118,7 @@
       background: #25283b;
     }
 
-    .btn-group { display: flex; gap: 8px; margin-top: 8px; }
+    .btn-group { display: flex; gap: 8px; margin-top: 6px; }
     button {
       flex: 1;
       padding: 9px;
@@ -158,309 +181,229 @@
 </head>
 <body>
 
-  <!-- PANEL DE CONFIGURACIÓN -->
+  <!-- PANEL LATERAL CON ACORDEONES SEGUROS -->
   <div id="sidebar">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;">
       <h2 style="font-size: 16px;">Generador de Etiquetas</h2>
     </div>
 
-    <!-- 0. Guardar y Cargar Proyecto -->
-    <div class="form-group">
-      <div class="section-title">0. Proyecto y Plantillas</div>
-      <div class="btn-group" style="margin-top: 0;">
-        <button type="button" class="save-btn" id="btnSaveProject">💾 Guardar Proyecto (.json)</button>
-        <button type="button" class="load-btn" id="btnLoadProjectTrigger">📂 Cargar Proyecto</button>
-        <input type="file" id="projectFileInput" accept=".json" style="display: none;">
+    <!-- 0. Proyecto y Plantillas -->
+    <details open>
+      <summary>💾 Proyecto y Plantillas</summary>
+      <div class="accordion-content">
+        <div class="btn-group" style="margin-top: 0;">
+          <button type="button" class="save-btn" id="btnSaveProject">Guardar Proyecto (.json)</button>
+          <button type="button" class="load-btn" id="btnLoadProjectTrigger">Cargar Proyecto</button>
+          <input type="file" id="projectFileInput" accept=".json" style="display: none;">
+        </div>
+        <span id="projectStatus" style="font-size: 11px; color: #10b981;"></span>
       </div>
-      <span id="projectStatus" style="font-size: 11px; color: #10b981; margin-top: 2px;"></span>
-    </div>
+    </details>
 
     <!-- 1. Hoja, Márgenes y Separación -->
-    <div class="form-group">
-      <div class="section-title">1. Hoja, Márgenes y Separación (cm)</div>
-      <div class="grid-2">
-        <div class="form-group">
-          <label>Formato</label>
-          <select id="sheetFormat">
-            <option value="letter">Carta (21.59 × 27.94)</option>
-            <option value="a4">A4 (21.0 × 29.7)</option>
-          </select>
+    <details>
+      <summary>🖨️ 1. Hoja, Márgenes y Separación</summary>
+      <div class="accordion-content">
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Formato</label>
+            <select id="sheetFormat">
+              <option value="letter">Carta (21.59 × 27.94)</option>
+              <option value="a4">A4 (21.0 × 29.7)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Orientación</label>
+            <select id="sheetOrientation">
+              <option value="portrait">Vertical</option>
+              <option value="landscape">Horizontal</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Orientación</label>
-          <select id="sheetOrientation">
-            <option value="portrait">Vertical</option>
-            <option value="landscape">Horizontal</option>
-          </select>
+        <div class="grid-4">
+          <div class="form-group"><label>M. Sup</label><input type="number" id="marginTop" value="0.8" step="0.1" min="0"></div>
+          <div class="form-group"><label>M. Inf</label><input type="number" id="marginBottom" value="0.8" step="0.1" min="0"></div>
+          <div class="form-group"><label>M. Izq</label><input type="number" id="marginLeft" value="0.5" step="0.1" min="0"></div>
+          <div class="form-group"><label>M. Der</label><input type="number" id="marginRight" value="0.5" step="0.1" min="0"></div>
         </div>
-      </div>
-      <div class="grid-4" style="margin-top: 4px;">
-        <div class="form-group">
-          <label>M. Sup</label>
-          <input type="number" id="marginTop" value="0.8" step="0.1" min="0">
-        </div>
-        <div class="form-group">
-          <label>M. Inf</label>
-          <input type="number" id="marginBottom" value="0.8" step="0.1" min="0">
-        </div>
-        <div class="form-group">
-          <label>M. Izq</label>
-          <input type="number" id="marginLeft" value="0.5" step="0.1" min="0">
-        </div>
-        <div class="form-group">
-          <label>M. Der</label>
-          <input type="number" id="marginRight" value="0.5" step="0.1" min="0">
+        <div class="grid-2">
+          <div class="form-group"><label>Gap Horizontal (X)</label><input type="number" id="gapX" value="0.0" step="0.1" min="0"></div>
+          <div class="form-group"><label>Gap Vertical (Y)</label><input type="number" id="gapY" value="0.0" step="0.1" min="0"></div>
         </div>
       </div>
-      <div class="grid-2" style="margin-top: 4px;">
-        <div class="form-group">
-          <label>Espacio Horizontal (Gap X)</label>
-          <input type="number" id="gapX" value="0.0" step="0.1" min="0">
-        </div>
-        <div class="form-group">
-          <label>Espacio Vertical (Gap Y)</label>
-          <input type="number" id="gapY" value="0.0" step="0.1" min="0">
-        </div>
-      </div>
-    </div>
+    </details>
 
     <!-- 2. Medidas y Geometría -->
-    <div class="form-group">
-      <div class="section-title">2. Tamaño y Formas</div>
-      <div class="grid-2">
-        <div class="form-group">
-          <label>Ancho Etiqueta (cm)</label>
-          <input type="number" id="labelWidth" value="10.5" step="0.1">
+    <details>
+      <summary>📐 2. Tamaño y Formas de Etiqueta</summary>
+      <div class="accordion-content">
+        <div class="grid-2">
+          <div class="form-group"><label>Ancho (cm)</label><input type="number" id="labelWidth" value="10.5" step="0.1"></div>
+          <div class="form-group"><label>Alto (cm)</label><input type="number" id="labelHeight" value="4.0" step="0.1"></div>
         </div>
-        <div class="form-group">
-          <label>Alto Etiqueta (cm)</label>
-          <input type="number" id="labelHeight" value="4.0" step="0.1">
-        </div>
-      </div>
-      <div class="grid-2" style="margin-top: 4px;">
-        <div class="form-group">
-          <label>Esquinas</label>
-          <select id="roundedCorners">
-            <option value="rounded">Esquinas Redondeadas</option>
-            <option value="straight">Esquinas Rectas</option>
-          </select>
-        </div>
-        <div class="form-group" style="justify-content: flex-end; padding-bottom: 4px;">
-          <label>
-            <input type="checkbox" id="enableSideTab" checked> Pestaña Lateral
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. Tipografía y Google Fonts Embed -->
-    <div class="form-group">
-      <div class="section-title">3. Tipografías, Embeds y Colores</div>
-      
-      <!-- Inyector de Google Fonts -->
-      <div class="form-group">
-        <label>➕ Agregar Google Font (Pega &lt;link&gt;, @import o el nombre):</label>
-        <div style="display: flex; gap: 6px;">
-          <input type="text" id="customGoogleFontInput" placeholder="Ej: Pacifico, Fredoka, Bebas Neue...">
-          <button type="button" class="mini-btn" id="btnAddGoogleFont" style="min-width: 75px;">Cargar</button>
-        </div>
-        <span id="fontLoadStatus" style="font-size: 11px; color: #4e8cff;"></span>
-      </div>
-
-      <div class="grid-2" style="margin-top: 4px;">
-        <div class="form-group">
-          <label>Fuente Alumno / Grado</label>
-          <select id="fontFamilyStudent">
-            <option value="'Century Gothic', Arial, sans-serif">Century Gothic / Arial</option>
-            <option value="'Quicksand', sans-serif">Quicksand (Redondeada)</option>
-            <option value="'Poppins', sans-serif">Poppins</option>
-            <option value="'Comfortaa', cursive">Comfortaa</option>
-            <option value="'Comic Neue', cursive">Comic Neue</option>
-            <option value="'Roboto', sans-serif">Roboto</option>
-            <option value="'Montserrat', sans-serif">Montserrat</option>
-            <option value="'Caveat', cursive">Caveat (Manuscrita)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Fuente Asignatura</label>
-          <select id="fontFamilySubject">
-            <option value="'Century Gothic', Arial, sans-serif">Century Gothic / Arial</option>
-            <option value="'Poppins', sans-serif">Poppins</option>
-            <option value="'Montserrat', sans-serif">Montserrat</option>
-            <option value="'Quicksand', sans-serif">Quicksand</option>
-            <option value="'Roboto', sans-serif">Roboto</option>
-            <option value="'Comic Neue', cursive">Comic Neue</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Nombre y Apellidos -->
-      <div class="grid-2" style="margin-top: 4px;">
-        <div class="form-group">
-          <label>Color Nombre/Apellidos</label>
-          <input type="color" id="studentTextColor" value="#111111">
-        </div>
-        <div class="form-group">
-          <label>Tamaño Nombre/Apellidos</label>
-          <div class="range-wrap">
-            <input type="range" id="studentFontSizeScale" min="0.6" max="1.5" step="0.05" value="1.0">
-            <span id="studentFontScaleVal">100%</span>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Esquinas</label>
+            <select id="roundedCorners">
+              <option value="rounded">Redondeadas</option>
+              <option value="straight">Rectas</option>
+            </select>
+          </div>
+          <div class="form-group" style="justify-content: flex-end; padding-bottom: 2px;">
+            <label><input type="checkbox" id="enableSideTab" checked> Pestaña Lateral</label>
           </div>
         </div>
       </div>
+    </details>
 
-      <!-- Grado y Salón -->
-      <div class="grid-3" style="margin-top: 4px;">
+    <!-- 3. Tipografía y Google Fonts -->
+    <details>
+      <summary>🔤 3. Tipografías y Colores de Texto</summary>
+      <div class="accordion-content">
         <div class="form-group">
-          <label>Color Grado/Salón</label>
-          <input type="color" id="gradeTextColor" value="#222222">
+          <label>➕ Agregar Google Font (Pega &lt;link&gt; o nombre):</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="customGoogleFontInput" placeholder="Ej: Fredoka, Pacifico...">
+            <button type="button" class="mini-btn" id="btnAddGoogleFont" style="min-width: 70px;">Cargar</button>
+          </div>
+          <span id="fontLoadStatus" style="font-size: 11px; color: #4e8cff;"></span>
         </div>
-        <div class="form-group">
-          <label>Tamaño Grado</label>
-          <div class="range-wrap">
-            <input type="range" id="gradeFontSizeScale" min="0.6" max="1.5" step="0.05" value="1.0">
-            <span id="gradeFontScaleVal">100%</span>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Fuente Alumno</label>
+            <select id="fontFamilyStudent">
+              <option value="'Century Gothic', Arial, sans-serif">Century Gothic / Arial</option>
+              <option value="'Quicksand', sans-serif">Quicksand</option>
+              <option value="'Poppins', sans-serif">Poppins</option>
+              <option value="'Comfortaa', cursive">Comfortaa</option>
+              <option value="'Comic Neue', cursive">Comic Neue</option>
+              <option value="'Roboto', sans-serif">Roboto</option>
+              <option value="'Montserrat', sans-serif">Montserrat</option>
+              <option value="'Caveat', cursive">Caveat</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fuente Asignatura</label>
+            <select id="fontFamilySubject">
+              <option value="'Century Gothic', Arial, sans-serif">Century Gothic / Arial</option>
+              <option value="'Poppins', sans-serif">Poppins</option>
+              <option value="'Montserrat', sans-serif">Montserrat</option>
+              <option value="'Quicksand', sans-serif">Quicksand</option>
+              <option value="'Roboto', sans-serif">Roboto</option>
+              <option value="'Comic Neue', cursive">Comic Neue</option>
+            </select>
           </div>
         </div>
-        <div class="form-group">
-          <label>Espacio Grado-Salón</label>
-          <input type="number" id="gradeGroupGap" value="0.4" step="0.1" min="0">
+        <div class="grid-2">
+          <div class="form-group"><label>Color Nombre/Apellidos</label><input type="color" id="studentTextColor" value="#111111"></div>
+          <div class="form-group"><label>Escala Nombre</label><div class="range-wrap"><input type="range" id="studentFontSizeScale" min="0.6" max="1.5" step="0.05" value="1.0"><span id="studentFontScaleVal">100%</span></div></div>
+        </div>
+        <div class="grid-3">
+          <div class="form-group"><label>Color Grado/Salón</label><input type="color" id="gradeTextColor" value="#222222"></div>
+          <div class="form-group"><label>Escala Grado</label><div class="range-wrap"><input type="range" id="gradeFontSizeScale" min="0.6" max="1.5" step="0.05" value="1.0"><span id="gradeFontScaleVal">100%</span></div></div>
+          <div class="form-group"><label>Gap Grado-Salón</label><input type="number" id="gradeGroupGap" value="0.4" step="0.1" min="0"></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>Color Asignatura</label><input type="color" id="subjectTextColor" value="#ffffff"></div>
+          <div class="form-group"><label>Escala Asignatura</label><div class="range-wrap"><input type="range" id="subjectFontSizeScale" min="0.6" max="1.5" step="0.05" value="1.0"><span id="subjectFontScaleVal">100%</span></div></div>
         </div>
       </div>
-
-      <!-- Asignatura -->
-      <div class="grid-2" style="margin-top: 4px;">
-        <div class="form-group">
-          <label>Color Asignatura</label>
-          <input type="color" id="subjectTextColor" value="#ffffff">
-        </div>
-        <div class="form-group">
-          <label>Tamaño Asignatura</label>
-          <div class="range-wrap">
-            <input type="range" id="subjectFontSizeScale" min="0.6" max="1.5" step="0.05" value="1.0">
-            <span id="subjectFontScaleVal">100%</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    </details>
 
     <!-- 4. Datos del Alumno -->
-    <div class="form-group">
-      <div class="section-title">4. Datos del Alumno (Sincronizados)</div>
-      <div class="grid-2">
-        <div class="form-group">
-          <label>Nombre(s)</label>
-          <input type="text" id="studentName" value="Pedro Jeremias">
+    <details open>
+      <summary>✏️ 4. Datos del Alumno</summary>
+      <div class="accordion-content">
+        <div class="grid-2">
+          <div class="form-group"><label>Nombre(s)</label><input type="text" id="studentName" value="Pedro Jeremias"></div>
+          <div class="form-group"><label>Apellidos</label><input type="text" id="studentSurname" value="Ramírez"></div>
         </div>
-        <div class="form-group">
-          <label>Apellidos</label>
-          <input type="text" id="studentSurname" value="Ramírez">
-        </div>
-      </div>
-      <div class="grid-2" style="margin-top: 4px;">
-        <div class="form-group">
-          <label>Grado</label>
-          <input type="text" id="studentGrade" value="6° Primaria">
-        </div>
-        <div class="form-group">
-          <label>Salón / Grupo</label>
-          <input type="text" id="studentGroup" value="Salón B">
+        <div class="grid-2">
+          <div class="form-group"><label>Grado</label><input type="text" id="studentGrade" value="6° Primaria"></div>
+          <div class="form-group"><label>Salón / Grupo</label><input type="text" id="studentGroup" value="Salón B"></div>
         </div>
       </div>
-    </div>
+    </details>
 
-    <!-- 5. Fondos y Texturas -->
-    <div class="form-group">
-      <div class="section-title">5. Fondos y Colores</div>
-      <div class="grid-2">
-        <div class="form-group">
-          <label>Fondo Etiqueta</label>
-          <input type="color" id="bgLabelColor" value="#d8be8d">
+    <!-- 5. Fondos, Texturas y Tamaño del Bloque Central -->
+    <details>
+      <summary>🎨 5. Fondos, Texturas y Área de Texto</summary>
+      <div class="accordion-content">
+        <!-- Control de tamaño/escala del bloque de texto central -->
+        <div class="form-group" style="background: #14141a; padding: 8px; border-radius: 4px; border: 1px dashed var(--accent);">
+          <label style="color: var(--accent); font-weight: bold;">Tamaño del Bloque Central de Texto</label>
+          <div class="range-wrap" style="margin-top: 4px;">
+            <input type="range" id="cardScale" min="0.6" max="1.0" step="0.02" value="0.8">
+            <span id="cardScaleVal">80%</span>
+          </div>
+          <span style="font-size: 10px; color: #888899;">Permite achicar o agrandar la caja de texto para ver más o menos fondo de etiqueta. Todo su contenido se ajusta a la par.</span>
         </div>
-        <div class="form-group">
-          <label>Fondo Bloque Texto</label>
-          <input type="color" id="bgCardColor" value="#f7f7f3">
-        </div>
-        <div class="form-group">
-          <label>Fondo Cinta Asignatura</label>
-          <input type="color" id="ribbonColor" value="#4a7c59">
-        </div>
-        <div class="form-group">
-          <label>Color Pestaña Lateral</label>
-          <input type="color" id="tabColor" value="#4a7c59">
-        </div>
-      </div>
-      <div class="grid-2" style="margin-top: 4px;">
-        <div class="form-group">
-          <label>Textura Etiqueta</label>
-          <input type="file" id="bgLabelImage" accept="image/*">
-        </div>
-        <div class="form-group">
-          <label>Textura Bloque Texto</label>
-          <input type="file" id="bgCardImage" accept="image/*">
-        </div>
-      </div>
-      <div class="form-group" style="margin-top: 4px;">
-        <label>Textura Cinta Asignatura</label>
-        <input type="file" id="ribbonImage" accept="image/*">
-      </div>
-      <div class="form-group" style="margin-top: 4px;">
-        <label>
-          <input type="checkbox" id="showCutGuides" checked> Mostrar guías tenues de corte
-        </label>
-      </div>
-    </div>
 
-    <!-- 6. Control de Ilustración Lateral -->
-    <div class="form-group">
-      <div class="section-title">6. Ilustración Lateral</div>
-      <div class="form-group">
-        <label>
-          <input type="checkbox" id="enableSideIllustration" checked> Activar Ilustración Lateral
-        </label>
-      </div>
-      <div id="illustrationOptionsWrapper" style="display: flex; flex-direction: column; gap: 6px; margin-top: 2px;">
-        <div class="form-group">
-          <label>
-            <input type="checkbox" id="useSameImage" checked> Misma ilustración en todas las etiquetas
-          </label>
+        <div class="grid-2">
+          <div class="form-group"><label>Fondo Etiqueta</label><input type="color" id="bgLabelColor" value="#d8be8d"></div>
+          <div class="form-group"><label>Fondo Bloque Texto</label><input type="color" id="bgCardColor" value="#f7f7f3"></div>
+          <div class="form-group"><label>Cinta Asignatura</label><input type="color" id="ribbonColor" value="#4a7c59"></div>
+          <div class="form-group"><label>Pestaña Lateral</label><input type="color" id="tabColor" value="#4a7c59"></div>
         </div>
-        <div class="form-group" id="globalImageWrapper">
-          <label>Imagen Global de Ilustración</label>
-          <input type="file" id="globalImageInput" accept="image/*">
+        <div class="grid-2">
+          <div class="form-group"><label>Textura Etiqueta</label><input type="file" id="bgLabelImage" accept="image/*"></div>
+          <div class="form-group"><label>Textura Bloque Texto</label><input type="file" id="bgCardImage" accept="image/*"></div>
+        </div>
+        <div class="form-group">
+          <label>Textura Cinta Asignatura</label>
+          <input type="file" id="ribbonImage" accept="image/*">
+        </div>
+        <div class="form-group">
+          <label><input type="checkbox" id="showCutGuides" checked> Mostrar guías tenues de corte</label>
+        </div>
+      </div>
+    </details>
+
+    <!-- 6. Encuadre, Zoom y Posición de Capas -->
+    <details>
+      <summary>🖼️ 6. Ilustración Lateral y Encuadre</summary>
+      <div class="accordion-content">
+        <div class="form-group">
+          <label><input type="checkbox" id="enableSideIllustration" checked> Activar Ilustración Lateral</label>
         </div>
         <div class="form-group">
           <label><b>Capa a Mover / Ajustar:</b></label>
           <select id="activeTransformLayer">
-            <option value="icon">Ilustración Lateral (Insecto / Gráfico)</option>
+            <option value="icon" id="optLayerIcon">Ilustración Lateral (Gráfico)</option>
             <option value="bgLabel">Textura Fondo Etiqueta</option>
             <option value="bgCard">Textura Bloque de Texto</option>
             <option value="ribbon">Textura Cinta Asignatura</option>
           </select>
         </div>
+        <div id="illustrationOptionsWrapper" style="display: flex; flex-direction: column; gap: 6px;">
+          <div class="form-group"><label><input type="checkbox" id="useSameImage" checked> Misma ilustración en todas</label></div>
+          <div class="form-group" id="globalImageWrapper"><label>Imagen Global de Ilustración</label><input type="file" id="globalImageInput" accept="image/*"></div>
+        </div>
         <div class="help-pill">
-          🖱️ <b>Arrastra en el lienzo</b> para encuadrar la capa seleccionada.<br>
+          🖱️ <b>Arrastra en el lienzo</b> para encuadrar la capa.<br>
           🔍 <b>Rueda / Pad:</b> Zoom In / Out.<br>
           ⌨️ <b>Teclas de cursor:</b> Ajuste fino (+Shift: rápido).
         </div>
         <div style="display: flex; gap: 6px;">
           <button type="button" class="mini-btn" id="btnZoomIn">➕ Zoom</button>
           <button type="button" class="mini-btn" id="btnZoomOut">➖ Zoom</button>
-          <button type="button" class="mini-btn" id="btnResetTransform">↺ Centrar Capa</button>
+          <button type="button" class="mini-btn" id="btnResetTransform">↺ Centrar</button>
         </div>
       </div>
-    </div>
+    </details>
 
     <!-- 7. Asignaturas -->
-    <div class="form-group">
-      <div class="section-title">7. Asignaturas por Etiqueta</div>
-      <div id="subjects-list"></div>
-    </div>
+    <details>
+      <summary>📚 7. Asignaturas por Etiqueta</summary>
+      <div class="accordion-content">
+        <div id="subjects-list"></div>
+      </div>
+    </details>
 
     <!-- Acciones Finales -->
-    <div class="btn-group">
+    <div class="btn-group" style="margin-top: 6px;">
       <button id="btnExportPNG" class="secondary">Exportar PNG (300 DPI)</button>
-      <button id="btnExportPDF">Descargar PDF Imprimible</button>
+      <button id="btnExportPDF">Descargar PDF</button>
     </div>
   </div>
 
@@ -475,38 +418,16 @@
     const CM_TO_INCH = 1 / 2.54;
     const cmToPx = cm => Math.round(cm * CM_TO_INCH * DPI);
 
-    const assets = {
-      bgLabel: null,
-      bgCard: null,
-      ribbonImg: null,
-      globalIcon: null,
-      individualIcons: {}
-    };
-
-    const assetDataUrls = {
-      bgLabel: null,
-      bgCard: null,
-      ribbonImg: null,
-      globalIcon: null,
-      individualIcons: {}
-    };
+    const assets = { bgLabel: null, bgCard: null, ribbonImg: null, globalIcon: null, individualIcons: {} };
+    const assetDataUrls = { bgLabel: null, bgCard: null, ribbonImg: null, globalIcon: null, individualIcons: {} };
 
     const defaultTransform = () => ({ scale: 1.0, offsetX: 0, offsetY: 0 });
-    const layerTransforms = {
-      bgLabel: defaultTransform(),
-      bgCard: defaultTransform(),
-      ribbon: defaultTransform(),
-      iconGlobal: defaultTransform(),
-      iconIndividual: {}
-    };
+    const layerTransforms = { bgLabel: defaultTransform(), bgCard: defaultTransform(), ribbon: defaultTransform(), iconGlobal: defaultTransform(), iconIndividual: {} };
 
     let selectedLabelIndex = 0;
     let customLoadedFonts = [];
 
-    const defaultSubjects = [
-      "Lenguajes", "Saberes y P. C.", "Ética, Nat. y Soc.", "De lo Hum. y Com.",
-      "Matemáticas", "Inglés", "Lectura", "Tareas", "Materia 9", "Materia 10"
-    ];
+    const defaultSubjects = ["Lenguajes", "Saberes y P. C.", "Ética, Nat. y Soc.", "De lo Hum. y Com.", "Matemáticas", "Inglés", "Lectura", "Tareas", "Materia 9", "Materia 10"];
 
     const canvas = document.getElementById('sheetCanvas');
     const ctx = canvas.getContext('2d');
@@ -518,28 +439,26 @@
       setupEventListeners();
       setupInteractiveImageControls();
       setupProjectSaveLoad();
-      document.fonts.ready.then(() => {
-        updateGrid();
-      });
+      document.fonts.ready.then(() => { updateGrid(); });
     }
 
     function setupEventListeners() {
       const inputs = document.querySelectorAll('input, select');
       inputs.forEach(input => {
         input.addEventListener('input', () => {
-          if (input.id === 'studentFontSizeScale') {
-            document.getElementById('studentFontScaleVal').innerText = Math.round(input.value * 100) + '%';
-          }
-          if (input.id === 'gradeFontSizeScale') {
-            document.getElementById('gradeFontScaleVal').innerText = Math.round(input.value * 100) + '%';
-          }
-          if (input.id === 'subjectFontSizeScale') {
-            document.getElementById('subjectFontScaleVal').innerText = Math.round(input.value * 100) + '%';
-          }
+          if (input.id === 'studentFontSizeScale') document.getElementById('studentFontScaleVal').innerText = Math.round(input.value * 100) + '%';
+          if (input.id === 'gradeFontSizeScale') document.getElementById('gradeFontScaleVal').innerText = Math.round(input.value * 100) + '%';
+          if (input.id === 'subjectFontSizeScale') document.getElementById('subjectFontScaleVal').innerText = Math.round(input.value * 100) + '%';
+          if (input.id === 'cardScale') document.getElementById('cardScaleVal').innerText = Math.round(input.value * 100) + '%';
 
           if (['sheetFormat', 'sheetOrientation', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'labelWidth', 'labelHeight', 'gapX', 'gapY', 'enableSideIllustration'].includes(input.id)) {
             if (input.id === 'enableSideIllustration') {
-              document.getElementById('illustrationOptionsWrapper').style.display = input.checked ? 'flex' : 'none';
+              const isEnabled = input.checked;
+              document.getElementById('illustrationOptionsWrapper').style.display = isEnabled ? 'flex' : 'none';
+              document.getElementById('optLayerIcon').style.display = isEnabled ? 'block' : 'none';
+              if (!isEnabled && document.getElementById('activeTransformLayer').value === 'icon') {
+                document.getElementById('activeTransformLayer').value = 'bgLabel';
+              }
             }
             updateGrid();
           } else {
@@ -565,9 +484,7 @@
       document.getElementById('btnZoomOut').addEventListener('click', () => applyZoom(0.9));
       document.getElementById('btnResetTransform').addEventListener('click', () => {
         const t = getActiveTransform();
-        t.scale = 1.0;
-        t.offsetX = 0;
-        t.offsetY = 0;
+        t.scale = 1.0; t.offsetX = 0; t.offsetY = 0;
         renderSheet();
       });
 
@@ -577,7 +494,7 @@
       });
     }
 
-    function loadGoogleFont(input, callback) {
+    function loadGoogleFont(input) {
       const status = document.getElementById('fontLoadStatus');
       let fontName = '';
       let href = '';
@@ -631,7 +548,6 @@
 
         if (status) { status.innerText = `✓ ¡"${fontName}" lista!`; status.style.color = "#10b981"; }
         renderSheet();
-        if (callback) callback(fontVal);
       }).catch(() => {
         if (status) { status.innerText = `❌ Error al cargar "${fontName}".`; status.style.color = "#ef4444"; }
       });
@@ -646,7 +562,7 @@
       btnSave.addEventListener('click', () => {
         const subInputs = Array.from(document.querySelectorAll('.sub-name')).map(inp => inp.value);
         const projectData = {
-          version: "1.1",
+          version: "1.2",
           date: new Date().toISOString(),
           settings: {
             sheetFormat: document.getElementById('sheetFormat').value,
@@ -671,6 +587,7 @@
             studentFontSizeScale: document.getElementById('studentFontSizeScale').value,
             gradeFontSizeScale: document.getElementById('gradeFontSizeScale').value,
             subjectFontSizeScale: document.getElementById('subjectFontSizeScale').value,
+            cardScale: document.getElementById('cardScale').value,
             gradeGroupGap: document.getElementById('gradeGroupGap').value,
             studentName: document.getElementById('studentName').value,
             studentSurname: document.getElementById('studentSurname').value,
@@ -697,8 +614,8 @@
         a.click();
         URL.revokeObjectURL(url);
 
-        status.innerText = "✓ Proyecto guardado correctamente";
-        setTimeout(() => { status.innerText = ""; }, 4000);
+        status.innerText = "✓ Guardado";
+        setTimeout(() => { status.innerText = ""; }, 3000);
       });
 
       btnLoadTrigger.addEventListener('click', () => fileInput.click());
@@ -712,10 +629,10 @@
           try {
             const data = JSON.parse(ev.target.result);
             loadProjectData(data);
-            status.innerText = "✓ Proyecto cargado con éxito";
-            setTimeout(() => { status.innerText = ""; }, 4000);
+            status.innerText = "✓ Cargado";
+            setTimeout(() => { status.innerText = ""; }, 3000);
           } catch (err) {
-            alert("Error al leer el archivo de proyecto: " + err.message);
+            alert("Error al leer el archivo: " + err.message);
           }
         };
         reader.readAsText(file);
@@ -728,9 +645,7 @@
       if (!s) return;
 
       if (s.customLoadedFonts && s.customLoadedFonts.length > 0) {
-        s.customLoadedFonts.forEach(f => {
-          loadGoogleFont(f.href || f.name);
-        });
+        s.customLoadedFonts.forEach(f => { loadGoogleFont(f.href || f.name); });
       }
 
       const setVal = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
@@ -756,6 +671,7 @@
       setVal('studentFontSizeScale', s.studentFontSizeScale);
       setVal('gradeFontSizeScale', s.gradeFontSizeScale);
       setVal('subjectFontSizeScale', s.subjectFontSizeScale);
+      setVal('cardScale', s.cardScale !== undefined ? s.cardScale : 0.8);
       setVal('gradeGroupGap', s.gradeGroupGap);
       setVal('studentName', s.studentName);
       setVal('studentSurname', s.studentSurname);
@@ -767,15 +683,16 @@
       setVal('tabColor', s.tabColor);
       setChecked('useSameImage', s.useSameImage);
 
+      const isEnabled = s.enableSideIllustration !== false;
       document.getElementById('globalImageWrapper').style.display = s.useSameImage ? 'flex' : 'none';
-      document.getElementById('illustrationOptionsWrapper').style.display = (s.enableSideIllustration !== false) ? 'flex' : 'none';
+      document.getElementById('illustrationOptionsWrapper').style.display = isEnabled ? 'flex' : 'none';
+      document.getElementById('optLayerIcon').style.display = isEnabled ? 'block' : 'none';
       document.getElementById('studentFontScaleVal').innerText = Math.round(s.studentFontSizeScale * 100) + '%';
       document.getElementById('gradeFontScaleVal').innerText = Math.round(s.gradeFontSizeScale * 100) + '%';
       document.getElementById('subjectFontScaleVal').innerText = Math.round(s.subjectFontSizeScale * 100) + '%';
+      document.getElementById('cardScaleVal').innerText = Math.round((s.cardScale || 0.8) * 100) + '%';
 
-      if (data.transforms) {
-        Object.assign(layerTransforms, data.transforms);
-      }
+      if (data.transforms) Object.assign(layerTransforms, data.transforms);
 
       if (data.images) {
         const loadImg = (url, onLoad) => {
@@ -807,9 +724,7 @@
       if (s.subjects && s.subjects.length > 0) {
         setTimeout(() => {
           const subInputs = document.querySelectorAll('.sub-name');
-          s.subjects.forEach((subj, i) => {
-            if (subInputs[i]) subInputs[i].value = subj;
-          });
+          s.subjects.forEach((subj, i) => { if (subInputs[i]) subInputs[i].value = subj; });
           if (s.fontFamilyStudent) setVal('fontFamilyStudent', s.fontFamilyStudent);
           if (s.fontFamilySubject) setVal('fontFamilySubject', s.fontFamilySubject);
           renderSheet();
@@ -843,8 +758,7 @@
 
       canvas.addEventListener('mousedown', e => {
         isDragging = true;
-        lastX = e.clientX;
-        lastY = e.clientY;
+        lastX = e.clientX; lastY = e.clientY;
         previewContainer.focus();
       });
 
@@ -852,8 +766,7 @@
         if (!isDragging) return;
         const dx = e.clientX - lastX;
         const dy = e.clientY - lastY;
-        lastX = e.clientX;
-        lastY = e.clientY;
+        lastX = e.clientX; lastY = e.clientY;
 
         const t = getActiveTransform();
         const sensitivity = 2.5;
@@ -873,16 +786,13 @@
       window.addEventListener('keydown', e => {
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
           if (document.activeElement.tagName === 'INPUT' && document.activeElement.type === 'text') return;
-
           e.preventDefault();
           const step = e.shiftKey ? 20 : 5;
           const t = getActiveTransform();
-
           if (e.key === 'ArrowUp') t.offsetY -= step;
           if (e.key === 'ArrowDown') t.offsetY += step;
           if (e.key === 'ArrowLeft') t.offsetX -= step;
           if (e.key === 'ArrowRight') t.offsetX += step;
-
           renderSheet();
         }
       });
@@ -967,7 +877,7 @@
         });
       });
 
-      sheetInfo.innerText = `Hoja: ${sheet.w} × ${sheet.h} cm | Cuadrícula: ${cols} col × ${rows} filas (${total} etiquetas) | Separación: ${gX}cm × ${gY}cm`;
+      sheetInfo.innerText = `Hoja: ${sheet.w} × ${sheet.h} cm | Cuadrícula: ${cols} col × ${rows} filas (${total} etiquetas)`;
       renderSheet();
     }
 
@@ -1003,6 +913,7 @@
       const scaleStudent = parseFloat(document.getElementById('studentFontSizeScale').value) || 1.0;
       const scaleGrade = parseFloat(document.getElementById('gradeFontSizeScale').value) || 1.0;
       const scaleSubject = parseFloat(document.getElementById('subjectFontSizeScale').value) || 1.0;
+      const cardScale = parseFloat(document.getElementById('cardScale').value) || 0.8;
       const gradeGap = parseFloat(document.getElementById('gradeGroupGap').value) || 0.4;
 
       const isRounded = document.getElementById('roundedCorners').value === 'rounded';
@@ -1037,6 +948,7 @@
             scaleStudent,
             scaleGrade,
             scaleSubject,
+            cardScale,
             isRounded,
             enableTab,
             enableSideIllustration,
@@ -1056,11 +968,8 @@
 
       // 1. Fondo General de Etiqueta
       ctx.beginPath();
-      if (data.isRounded) {
-        ctx.roundRect(0, 0, w, h, radius);
-      } else {
-        ctx.rect(0, 0, w, h);
-      }
+      if (data.isRounded) ctx.roundRect(0, 0, w, h, radius);
+      else ctx.rect(0, 0, w, h);
       ctx.clip();
 
       if (assets.bgLabel) {
@@ -1070,7 +979,7 @@
         ctx.fillRect(0, 0, w, h);
       }
 
-      // 2. Pestaña lateral izquierda (Opcional, solo si está activa y hay ilustración o se desea)
+      // 2. Pestaña lateral izquierda
       if (data.enableTab) {
         const tabW = w * 0.04;
         const tabH = h * 0.12;
@@ -1079,28 +988,27 @@
         ctx.fillRect(0, tabY, tabW, tabH);
       }
 
-      // 3. Tarjeta central de datos (Se expande si no hay ilustración lateral)
-      let cardX, cardW;
+      // 3. Tarjeta central de datos (Escalada proporcionalmente con cardScale)
+      let baseCardW = data.enableSideIllustration ? (data.enableTab ? w * 0.64 : w * 0.65) : (data.enableTab ? w * 0.90 : w * 0.94);
+      let baseCardH = h * 0.80;
+
+      const cardW = baseCardW * data.cardScale;
+      const cardH = baseCardH * data.cardScale;
+
+      let cardX;
       if (data.enableSideIllustration) {
         cardX = data.enableTab ? w * 0.04 : w * 0.03;
-        cardW = data.enableTab ? w * 0.64 : w * 0.65;
       } else {
-        // Centrado automático y ancho ampliado ocupando casi todo el fondo
-        cardW = data.enableTab ? w * 0.90 : w * 0.94;
         cardX = (w - cardW) / 2;
       }
+      const cardY = (h - cardH) / 2; // Centrado vertical exacto
 
-      const cardY = h * 0.10;
-      const cardH = h * 0.80;
-      const cardRadius = data.isRounded ? h * 0.06 : 0;
+      const cardRadius = data.isRounded ? cardH * 0.08 : 0;
 
       ctx.save();
       ctx.beginPath();
-      if (data.isRounded) {
-        ctx.roundRect(cardX, cardY, cardW, cardH, cardRadius);
-      } else {
-        ctx.rect(cardX, cardY, cardW, cardH);
-      }
+      if (data.isRounded) ctx.roundRect(cardX, cardY, cardW, cardH, cardRadius);
+      else ctx.rect(cardX, cardY, cardW, cardH);
       ctx.clip();
 
       if (assets.bgCard) {
@@ -1109,7 +1017,6 @@
         ctx.fillStyle = document.getElementById('bgCardColor').value;
         ctx.fillRect(cardX, cardY, cardW, cardH);
 
-        // Cuadrícula sutil
         ctx.strokeStyle = "rgba(70, 130, 180, 0.2)";
         ctx.lineWidth = 1.5;
         const gridStep = h * 0.07;
@@ -1132,28 +1039,20 @@
         ctx.fillRect(cardX, ribbonY, cardW, ribbonH);
       }
 
-      // Texto de Asignatura con autoajuste inteligente
+      // Texto de Asignatura (Se ajusta dinámicamente al nuevo tamaño del bloque)
       const maxSubjectW = cardW * 0.92;
       const baseSubjectFontSize = Math.round(ribbonH * 0.58 * data.scaleSubject);
       drawAdaptiveSubjectText(
-        ctx, 
-        data.subject, 
-        cardX + (cardW / 2), 
-        ribbonY + (ribbonH / 2), 
-        maxSubjectW, 
-        ribbonH, 
-        data.fontSubject, 
-        baseSubjectFontSize, 
-        data.colorSubject
+        ctx, data.subject, cardX + (cardW / 2), ribbonY + (ribbonH / 2), 
+        maxSubjectW, ribbonH, data.fontSubject, baseSubjectFontSize, data.colorSubject
       );
 
-      // Borde de la tarjeta
       ctx.strokeStyle = "rgba(0,0,0,0.15)";
       ctx.lineWidth = 2;
       ctx.stroke();
       ctx.restore();
 
-      // 5. Textos del Alumno (Nombre, Apellidos)
+      // 5. Textos del Alumno (Escalamiento automático acorde al bloque central)
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       const textAreaH = cardH - ribbonH;
@@ -1164,7 +1063,7 @@
       ctx.fillText(data.name, cardX + (cardW / 2), cardY + (textAreaH * 0.24));
       ctx.fillText(data.surname, cardX + (cardW / 2), cardY + (textAreaH * 0.54));
 
-      // 6. Texto Grado y Salón
+      // 6. Grado y Salón
       ctx.fillStyle = data.colorGrade;
       const gradeFontSize = Math.round(textAreaH * 0.23 * data.scaleGrade);
       ctx.font = `${gradeFontSize}px ${data.fontStudent}`;
@@ -1187,7 +1086,7 @@
         ctx.fillText(`${gradeText} ${groupText}`.trim(), cardX + (cardW / 2), gradeY);
       }
 
-      // 7. Ilustración Lateral (Solo si está habilitada)
+      // 7. Ilustración Lateral
       if (data.enableSideIllustration && data.icon) {
         const iconAreaX = cardX + cardW;
         const iconAreaW = w - iconAreaX;
@@ -1222,7 +1121,6 @@
 
       ctx.restore();
 
-      // Guía de corte exterior
       if (data.showGuides) {
         ctx.strokeStyle = "rgba(0,0,0,0.12)";
         ctx.lineWidth = 1;
@@ -1323,12 +1221,7 @@
       const { sheetW, sheetH } = gridConfig;
       const orientation = sheetW > sheetH ? 'landscape' : 'portrait';
 
-      const pdf = new jsPDF({
-        orientation: orientation,
-        unit: 'cm',
-        format: [sheetW, sheetH]
-      });
-
+      const pdf = new jsPDF({ orientation: orientation, unit: 'cm', format: [sheetW, sheetH] });
       const imgData = canvas.toDataURL('image/jpeg', 0.98);
       pdf.addImage(imgData, 'JPEG', 0, 0, sheetW, sheetH);
       const nameClean = (document.getElementById('studentName').value || 'etiquetas').replace(/\s+/g, '_');
