@@ -20,57 +20,74 @@
       --highlight: #60a5fa;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { display: flex; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
-    
+    body { 
+      display: flex; 
+      height: 100vh; 
+      background: var(--bg); 
+      color: var(--text); 
+      overflow: hidden; 
+    }
+         
     /* Panel lateral */
     #sidebar {
       width: 470px;
       min-width: 470px;
-      height: 100%;
+      height: 100vh;
       background: var(--card-bg);
       border-right: 1px solid var(--border);
-      overflow-y: auto;
       padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 12px;
-    }
-    
-    /* Estilo de Acordeones nativos y seguros */
-    details {
-      background: #1c1c26;
-      border: 1px solid var(--border);
-      border-radius: 6px;
       overflow: hidden;
-      transition: border-color 0.2s;
     }
-    details[open] {
-      border-color: var(--accent);
+
+    /* Barra de pestañas superiores del panel */
+    .tab-nav {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      background: #1c1c26;
+      padding: 4px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
     }
-    summary {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+    .tab-btn {
+      background: transparent;
+      border: none;
       color: #9ea2be;
-      background: #20202c;
-      padding: 10px 12px;
+      padding: 8px 4px;
+      font-size: 10px;
       font-weight: 700;
+      text-transform: uppercase;
+      border-radius: 4px;
       cursor: pointer;
-      user-select: none;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      transition: all 0.2s;
+      text-align: center;
     }
-    summary:hover {
+    .tab-btn:hover {
+      color: #fff;
       background: #292938;
+    }
+    .tab-btn.active {
+      background: var(--accent);
       color: #fff;
     }
-    .accordion-content {
-      padding: 12px;
-      display: flex;
+
+    /* Contenido de las pestañas con scroll independiente y limpio */
+    .tab-pane {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
       flex-direction: column;
-      gap: 10px;
-      border-top: 1px solid var(--border);
+      gap: 12px;
+      padding-right: 4px;
+      padding-bottom: 20px;
+    }
+    .tab-pane.active {
+      display: flex;
     }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -90,7 +107,6 @@
     input[type="file"] { font-size: 11px; }
     .range-wrap { display: flex; align-items: center; gap: 6px; }
     .range-wrap span { font-size: 11px; color: #9da0b5; min-width: 35px; }
-
     .help-pill {
       background: #15151c;
       border-left: 3px solid var(--accent);
@@ -100,7 +116,6 @@
       line-height: 1.4;
       border-radius: 4px;
     }
-
     #subjects-list { display: flex; flex-direction: column; gap: 6px; }
     .subject-row {
       display: grid;
@@ -117,7 +132,6 @@
       border-color: var(--highlight);
       background: #25283b;
     }
-
     .btn-group { display: flex; gap: 8px; margin-top: 6px; }
     button {
       flex: 1;
@@ -137,7 +151,6 @@
     button.save-btn:hover { background: #047857; }
     button.load-btn { background: #d97706; }
     button.load-btn:hover { background: #b45309; }
-
     .mini-btn {
       padding: 5px 8px;
       background: #353547;
@@ -148,7 +161,6 @@
       cursor: pointer;
     }
     .mini-btn:hover { background: #4a4a60; }
-
     #preview-container {
       flex: 1;
       height: 100%;
@@ -181,30 +193,47 @@
 </head>
 <body>
 
-  <!-- PANEL LATERAL CON ACORDEONES SEGUROS -->
+  <!-- PANEL LATERAL CON PESTAÑAS -->
   <div id="sidebar">
-    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 2px;">
       <h2 style="font-size: 16px;">Generador de Etiquetas</h2>
     </div>
 
-    <!-- 0. Proyecto y Plantillas -->
-    <details open>
-      <summary>💾 Proyecto y Plantillas</summary>
-      <div class="accordion-content">
+    <!-- BOTONES DE NAVEGACIÓN (TABS) -->
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('tab-general', this)">⚙️ Config</button>
+      <button class="tab-btn" onclick="switchTab('tab-estilo', this)">🎨 Estilos</button>
+      <button class="tab-btn" onclick="switchTab('tab-ilustracion', this)">🖼️ Diseño</button>
+      <button class="tab-btn" onclick="switchTab('tab-asignaturas', this)">📚 Materias</button>
+    </div>
+    
+    <!-- PESTAÑA 1: GENERAL -->
+    <div id="tab-general" class="tab-pane active">
+      <div style="background: #1c1c26; border: 1px solid var(--border); border-radius: 6px; padding: 12px;">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9ea2be; font-weight: 700; margin-bottom: 8px;">💾 Proyecto</div>
         <div class="btn-group" style="margin-top: 0;">
-          <button type="button" class="save-btn" id="btnSaveProject">Guardar Proyecto (.json)</button>
-          <button type="button" class="load-btn" id="btnLoadProjectTrigger">Cargar Proyecto</button>
+          <button type="button" class="save-btn" id="btnSaveProject">Guardar (.json)</button>
+          <button type="button" class="load-btn" id="btnLoadProjectTrigger">Cargar</button>
           <input type="file" id="projectFileInput" accept=".json" style="display: none;">
         </div>
-        <span id="projectStatus" style="font-size: 11px; color: #10b981;"></span>
+        <span id="projectStatus" style="font-size: 11px; color: #10b981; display: block; margin-top: 4px;"></span>
       </div>
-    </details>
 
-    <!-- 1. Hoja, Márgenes y Separación -->
-    <details>
-      <summary>🖨️ 1. Hoja, Márgenes y Separación</summary>
-      <div class="accordion-content">
+      <div style="background: #1c1c26; border: 1px solid var(--border); border-radius: 6px; padding: 12px;">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9ea2be; font-weight: 700; margin-bottom: 8px;">✏️ Datos del Alumno</div>
+        <div class="grid-2" style="margin-bottom: 8px;">
+          <div class="form-group"><label>Nombre(s)</label><input type="text" id="studentName" value="Pedro Jeremias"></div>
+          <div class="form-group"><label>Apellidos</label><input type="text" id="studentSurname" value="Ramírez"></div>
+        </div>
         <div class="grid-2">
+          <div class="form-group"><label>Grado</label><input type="text" id="studentGrade" value="6° Primaria"></div>
+          <div class="form-group"><label>Salón / Grupo</label><input type="text" id="studentGroup" value="Salón B"></div>
+        </div>
+      </div>
+
+      <div style="background: #1c1c26; border: 1px solid var(--border); border-radius: 6px; padding: 12px;">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9ea2be; font-weight: 700; margin-bottom: 8px;">🖨️ Hoja y Márgenes</div>
+        <div class="grid-2" style="margin-bottom: 8px;">
           <div class="form-group">
             <label>Formato</label>
             <select id="sheetFormat">
@@ -220,7 +249,7 @@
             </select>
           </div>
         </div>
-        <div class="grid-4">
+        <div class="grid-4" style="margin-bottom: 8px;">
           <div class="form-group"><label>M. Sup</label><input type="number" id="marginTop" value="0.8" step="0.1" min="0"></div>
           <div class="form-group"><label>M. Inf</label><input type="number" id="marginBottom" value="0.8" step="0.1" min="0"></div>
           <div class="form-group"><label>M. Izq</label><input type="number" id="marginLeft" value="0.5" step="0.1" min="0"></div>
@@ -231,17 +260,14 @@
           <div class="form-group"><label>Gap Vertical (Y)</label><input type="number" id="gapY" value="0.0" step="0.1" min="0"></div>
         </div>
       </div>
-    </details>
 
-    <!-- 2. Medidas y Geometría -->
-    <details>
-      <summary>📐 2. Tamaño y Formas de Etiqueta</summary>
-      <div class="accordion-content">
-        <div class="grid-2">
+      <div style="background: #1c1c26; border: 1px solid var(--border); border-radius: 6px; padding: 12px;">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9ea2be; font-weight: 700; margin-bottom: 8px;">📐 Tamaño de Etiqueta y Borde</div>
+        <div class="grid-2" style="margin-bottom: 8px;">
           <div class="form-group"><label>Ancho (cm)</label><input type="number" id="labelWidth" value="10.5" step="0.1"></div>
           <div class="form-group"><label>Alto (cm)</label><input type="number" id="labelHeight" value="4.0" step="0.1"></div>
         </div>
-        <div class="grid-2">
+        <div class="grid-2" style="margin-bottom: 8px;">
           <div class="form-group">
             <label>Esquinas</label>
             <select id="roundedCorners">
@@ -253,22 +279,27 @@
             <label><input type="checkbox" id="enableSideTab" checked> Pestaña Lateral</label>
           </div>
         </div>
+        <div class="grid-3" style="border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 4px;">
+          <div class="form-group"><label><input type="checkbox" id="enableBorder"> Activar Borde</label></div>
+          <div class="form-group"><label>Grosor (px)</label><input type="number" id="borderWidth" value="2" min="1" max="20" step="1"></div>
+          <div class="form-group"><label>Color Borde</label><input type="color" id="borderColor" value="#333333"></div>
+        </div>
       </div>
-    </details>
+    </div>
 
-    <!-- 3. Tipografía y Google Fonts -->
-    <details>
-      <summary>🔤 3. Tipografías y Colores de Texto</summary>
-      <div class="accordion-content">
-        <div class="form-group">
-          <label>➕ Agregar Google Font (Pega &lt;link&gt; o nombre):</label>
+    <!-- PESTAÑA 2: ESTILOS (Tipografías y orden de Gap Grado debajo de Color Grado) -->
+    <div id="tab-estilo" class="tab-pane">
+      <div style="background: #1c1c26; border: 1px solid var(--border); border-radius: 6px; padding: 12px;">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9ea2be; font-weight: 700; margin-bottom: 8px;">🔤 Tipografías</div>
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label>➕ Agregar Google Font (Nombre o link):</label>
           <div style="display: flex; gap: 6px;">
             <input type="text" id="customGoogleFontInput" placeholder="Ej: Fredoka, Pacifico...">
             <button type="button" class="mini-btn" id="btnAddGoogleFont" style="min-width: 70px;">Cargar</button>
           </div>
           <span id="fontLoadStatus" style="font-size: 11px; color: #4e8cff;"></span>
         </div>
-        <div class="grid-2">
+        <div class="grid-2" style="margin-bottom: 8px;">
           <div class="form-group">
             <label>Fuente Alumno</label>
             <select id="fontFamilyStudent">
@@ -294,119 +325,122 @@
             </select>
           </div>
         </div>
-        <div class="grid-2">
-          <div class="form-group"><label>Color Nombre/Apellidos</label><input type="color" id="studentTextColor" value="#111111"></div>
+        <div class="grid-2" style="margin-bottom: 8px;">
+          <div class="form-group"><label>Color Nombre</label><input type="color" id="studentTextColor" value="#111111"></div>
           <div class="form-group"><label>Escala Nombre</label><div class="range-wrap"><input type="range" id="studentFontSizeScale" min="0.6" max="1.5" step="0.05" value="1.0"><span id="studentFontScaleVal">100%</span></div></div>
         </div>
-        <div class="grid-3">
-          <div class="form-group"><label>Color Grado/Salón</label><input type="color" id="gradeTextColor" value="#222222"></div>
+        
+        <!-- Reorganizado: Color Grado y debajo Gap Grado -->
+        <div class="grid-2" style="margin-bottom: 8px;">
+          <div class="form-group"><label>Color Grado</label><input type="color" id="gradeTextColor" value="#222222"></div>
           <div class="form-group"><label>Escala Grado</label><div class="range-wrap"><input type="range" id="gradeFontSizeScale" min="0.6" max="1.5" step="0.05" value="1.0"><span id="gradeFontScaleVal">100%</span></div></div>
-          <div class="form-group"><label>Gap Grado-Salón</label><input type="number" id="gradeGroupGap" value="0.4" step="0.1" min="0"></div>
         </div>
+        <div class="grid-2" style="margin-bottom: 8px;">
+          <div class="form-group"><label>Gap Grado-Salón</label><input type="number" id="gradeGroupGap" value="0.4" step="0.1" min="0"></div>
+          <div></div> <!-- Espacio vacío para equilibrar el grid de 2 columnas -->
+        </div>
+
         <div class="grid-2">
           <div class="form-group"><label>Color Asignatura</label><input type="color" id="subjectTextColor" value="#ffffff"></div>
           <div class="form-group"><label>Escala Asignatura</label><div class="range-wrap"><input type="range" id="subjectFontSizeScale" min="0.6" max="1.5" step="0.05" value="1.0"><span id="subjectFontScaleVal">100%</span></div></div>
         </div>
       </div>
-    </details>
+    </div>
 
-    <!-- 4. Datos del Alumno -->
-    <details open>
-      <summary>✏️ 4. Datos del Alumno</summary>
-      <div class="accordion-content">
-        <div class="grid-2">
-          <div class="form-group"><label>Nombre(s)</label><input type="text" id="studentName" value="Pedro Jeremias"></div>
-          <div class="form-group"><label>Apellidos</label><input type="text" id="studentSurname" value="Ramírez"></div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group"><label>Grado</label><input type="text" id="studentGrade" value="6° Primaria"></div>
-          <div class="form-group"><label>Salón / Grupo</label><input type="text" id="studentGroup" value="Salón B"></div>
-        </div>
-      </div>
-    </details>
-
-    <!-- 5. Fondos, Texturas y Tamaño del Bloque Central -->
-    <details>
-      <summary>🎨 5. Fondos, Texturas y Área de Texto</summary>
-      <div class="accordion-content">
-        <!-- Control de tamaño/escala del bloque de texto central -->
-        <div class="form-group" style="background: #14141a; padding: 8px; border-radius: 4px; border: 1px dashed var(--accent);">
-          <label style="color: var(--accent); font-weight: bold;">Tamaño del Bloque Central de Texto</label>
+    <!-- PESTAÑA 3: DISEÑO -->
+    <div id="tab-ilustracion" class="tab-pane">
+      <div style="background: #1c1c26; border: 1px solid var(--border); border-radius: 6px; padding: 12px;">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9ea2be; font-weight: 700; margin-bottom: 8px;">🎨 Colores y Texturas</div>
+        <div class="form-group" style="background: #14141a; padding: 8px; border-radius: 4px; border: 1px dashed var(--accent); margin-bottom: 8px;">
+          <label style="color: var(--accent); font-weight: bold;">Tamaño del Bloque Central</label>
           <div class="range-wrap" style="margin-top: 4px;">
             <input type="range" id="cardScale" min="0.6" max="1.0" step="0.02" value="0.8">
             <span id="cardScaleVal">80%</span>
           </div>
-          <span style="font-size: 10px; color: #888899;">Permite achicar o agrandar la caja de texto para ver más o menos fondo de etiqueta. Todo su contenido se ajusta a la par.</span>
         </div>
-
-        <div class="grid-2">
+        <div class="grid-2" style="margin-bottom: 8px;">
           <div class="form-group"><label>Fondo Etiqueta</label><input type="color" id="bgLabelColor" value="#d8be8d"></div>
           <div class="form-group"><label>Fondo Bloque Texto</label><input type="color" id="bgCardColor" value="#f7f7f3"></div>
           <div class="form-group"><label>Cinta Asignatura</label><input type="color" id="ribbonColor" value="#4a7c59"></div>
           <div class="form-group"><label>Pestaña Lateral</label><input type="color" id="tabColor" value="#4a7c59"></div>
         </div>
-        <div class="grid-2">
-          <div class="form-group"><label>Textura Etiqueta</label><input type="file" id="bgLabelImage" accept="image/*"></div>
-          <div class="form-group"><label>Textura Bloque Texto</label><input type="file" id="bgCardImage" accept="image/*"></div>
+
+        <div class="form-group" style="margin-bottom: 8px; border-top: 1px dashed var(--border); padding-top: 8px;">
+          <label>Textura Fondo Etiqueta</label>
+          <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+            <input type="file" id="bgLabelImage" accept="image/*" style="flex: 1;">
+            <button type="button" class="mini-btn" id="btnClearBgLabel" style="background: #dc2626;">Quitar</button>
+          </div>
+          <label style="color: var(--highlight); cursor: pointer;"><input type="checkbox" name="editLayer" value="bgLabel"> ✏️ Habilitar edición / mover textura etiqueta</label>
         </div>
-        <div class="form-group">
+
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label>Textura Bloque Texto</label>
+          <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+            <input type="file" id="bgCardImage" accept="image/*" style="flex: 1;">
+            <button type="button" class="mini-btn" id="btnClearBgCard" style="background: #dc2626;">Quitar</button>
+          </div>
+          <label style="color: var(--highlight); cursor: pointer;"><input type="checkbox" name="editLayer" value="bgCard"> ✏️ Habilitar edición / mover textura bloque</label>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 8px;">
           <label>Textura Cinta Asignatura</label>
-          <input type="file" id="ribbonImage" accept="image/*">
+          <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+            <input type="file" id="ribbonImage" accept="image/*" style="flex: 1;">
+          </div>
+          <label style="color: var(--highlight); cursor: pointer;"><input type="checkbox" name="editLayer" value="ribbon"> ✏️ Habilitar edición / mover textura cinta</label>
         </div>
+
         <div class="form-group">
           <label><input type="checkbox" id="showCutGuides" checked> Mostrar guías tenues de corte</label>
         </div>
       </div>
-    </details>
 
-    <!-- 6. Encuadre, Zoom y Posición de Capas -->
-    <details>
-      <summary>🖼️ 6. Ilustración Lateral y Encuadre</summary>
-      <div class="accordion-content">
-        <div class="form-group">
+      <div class="help-pill" style="margin-top: 4px;">
+        🖱️ <b>Arrastra en el lienzo</b> para mover la capa activa.<br>
+        🔍 <b>Rueda / Pad:</b> Zoom In / Out.<br>
+        ⌨️ <b>Teclas de cursor:</b> Ajuste fino (+Shift: rápido).<br>
+        ↩️ <b>Ctrl + Z:</b> Deshacer último cambio.
+      </div>
+      <div style="display: flex; gap: 6px; margin-top: 8px;">
+        <button type="button" class="mini-btn" id="btnZoomIn">➕ Zoom</button>
+        <button type="button" class="mini-btn" id="btnZoomOut">➖ Zoom</button>
+        <button type="button" class="mini-btn" id="btnResetTransform">↺ Centrar Activa</button>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 4: MATERIAS -->
+    <div id="tab-asignaturas" class="tab-pane">
+      <div style="background: #1c1c26; border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9ea2be; font-weight: 700; margin-bottom: 8px;">🖼️ Ilustración Lateral</div>
+        <div class="form-group" style="margin-bottom: 8px;">
           <label><input type="checkbox" id="enableSideIllustration" checked> Activar Ilustración Lateral</label>
         </div>
-        <div class="form-group">
-          <label><b>Capa a Mover / Ajustar:</b></label>
-          <select id="activeTransformLayer">
-            <option value="icon" id="optLayerIcon">Ilustración Lateral (Gráfico)</option>
-            <option value="bgLabel">Textura Fondo Etiqueta</option>
-            <option value="bgCard">Textura Bloque de Texto</option>
-            <option value="ribbon">Textura Cinta Asignatura</option>
-          </select>
-        </div>
-        <div id="illustrationOptionsWrapper" style="display: flex; flex-direction: column; gap: 6px;">
+        <div id="illustrationOptionsWrapper" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px;">
           <div class="form-group"><label><input type="checkbox" id="useSameImage" checked> Misma ilustración en todas</label></div>
-          <div class="form-group" id="globalImageWrapper"><label>Imagen Global de Ilustración</label><input type="file" id="globalImageInput" accept="image/*"></div>
+          <div class="form-group" id="globalImageWrapper">
+            <label>Imagen Global de Ilustración</label>
+            <input type="file" id="globalImageInput" accept="image/*">
+          </div>
         </div>
-        <div class="help-pill">
-          🖱️ <b>Arrastra en el lienzo</b> para encuadrar la capa.<br>
-          🔍 <b>Rueda / Pad:</b> Zoom In / Out.<br>
-          ⌨️ <b>Teclas de cursor:</b> Ajuste fino (+Shift: rápido).
-        </div>
-        <div style="display: flex; gap: 6px;">
-          <button type="button" class="mini-btn" id="btnZoomIn">➕ Zoom</button>
-          <button type="button" class="mini-btn" id="btnZoomOut">➖ Zoom</button>
-          <button type="button" class="mini-btn" id="btnResetTransform">↺ Centrar</button>
+        <div class="form-group" style="margin-top: 4px;">
+          <label style="color: var(--highlight); cursor: pointer;"><input type="checkbox" name="editLayer" value="icon" checked> ✏️ Habilitar edición / mover ilustración</label>
         </div>
       </div>
-    </details>
 
-    <!-- 7. Asignaturas -->
-    <details>
-      <summary>📚 7. Asignaturas por Etiqueta</summary>
-      <div class="accordion-content">
+      <div style="background: #1c1c26; border: 1px solid var(--border); border-radius: 6px; padding: 12px;">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9ea2be; font-weight: 700; margin-bottom: 8px;">📚 Asignaturas por Etiqueta</div>
         <div id="subjects-list"></div>
       </div>
-    </details>
+    </div>
 
     <!-- Acciones Finales -->
-    <div class="btn-group" style="margin-top: 6px;">
+    <div class="btn-group" style="margin-top: auto; flex-shrink: 0; padding-top: 6px; border-top: 1px solid var(--border);">
       <button id="btnExportPNG" class="secondary">Exportar PNG (300 DPI)</button>
       <button id="btnExportPDF">Descargar PDF</button>
     </div>
   </div>
-
+            
   <!-- PREVISUALIZACIÓN -->
   <div id="preview-container" tabindex="0">
     <canvas id="sheetCanvas"></canvas>
@@ -414,6 +448,13 @@
   </div>
 
   <script>
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+    }
+
     const DPI = 300;
     const CM_TO_INCH = 1 / 2.54;
     const cmToPx = cm => Math.round(cm * CM_TO_INCH * DPI);
@@ -427,6 +468,43 @@
     let selectedLabelIndex = 0;
     let customLoadedFonts = [];
 
+    let undoStack = [];
+    const MAX_HISTORY = 20;
+
+    function saveStateForUndo() {
+      const state = {
+        inputs: Array.from(document.querySelectorAll('input, select')).map(el => ({
+          id: el.id, name: el.name, type: el.type, value: el.value, checked: el.checked
+        })),
+        subjects: Array.from(document.querySelectorAll('.sub-name')).map(inp => inp.value),
+        transforms: JSON.parse(JSON.stringify(layerTransforms))
+      };
+      undoStack.push(state);
+      if (undoStack.length > MAX_HISTORY) undoStack.shift();
+    }
+
+    function undoLastAction() {
+      if (undoStack.length === 0) return;
+      const state = undoStack.pop();
+      state.inputs.forEach(item => {
+        if (item.id) {
+          const el = document.getElementById(item.id);
+          if (el) {
+            if (item.type === 'checkbox') el.checked = item.checked;
+            else el.value = item.value;
+          }
+        } else if (item.name) {
+          const els = document.getElementsByName(item.name);
+          els.forEach(el => {
+            if (el.value === item.value) el.checked = item.checked;
+          });
+        }
+      });
+      if (state.transforms) Object.assign(layerTransforms, state.transforms);
+      updateGrid(false);
+      renderSheet();
+    }
+
     const defaultSubjects = ["Lenguajes", "Saberes y P. C.", "Ética, Nat. y Soc.", "De lo Hum. y Com.", "Matemáticas", "Inglés", "Lectura", "Tareas", "Materia 9", "Materia 10"];
 
     const canvas = document.getElementById('sheetCanvas');
@@ -439,12 +517,35 @@
       setupEventListeners();
       setupInteractiveImageControls();
       setupProjectSaveLoad();
+      setupLayerCheckboxes();
       document.fonts.ready.then(() => { updateGrid(); });
+    }
+
+    function setupLayerCheckboxes() {
+      const checkboxes = document.querySelectorAll('input[name="editLayer"]');
+      checkboxes.forEach(chk => {
+        chk.addEventListener('change', () => {
+          if (chk.checked) {
+            checkboxes.forEach(other => {
+              if (other !== chk) other.checked = false;
+            });
+          } else {
+            const anyChecked = Array.from(checkboxes).some(c => c.checked);
+            if (!anyChecked) chk.checked = true;
+          }
+        });
+      });
+    }
+
+    function getActiveLayerName() {
+      const activeChk = document.querySelector('input[name="editLayer"]:checked');
+      return activeChk ? activeChk.value : 'icon';
     }
 
     function setupEventListeners() {
       const inputs = document.querySelectorAll('input, select');
       inputs.forEach(input => {
+        input.addEventListener('change', () => { saveStateForUndo(); });
         input.addEventListener('input', () => {
           if (input.id === 'studentFontSizeScale') document.getElementById('studentFontScaleVal').innerText = Math.round(input.value * 100) + '%';
           if (input.id === 'gradeFontSizeScale') document.getElementById('gradeFontScaleVal').innerText = Math.round(input.value * 100) + '%';
@@ -455,10 +556,6 @@
             if (input.id === 'enableSideIllustration') {
               const isEnabled = input.checked;
               document.getElementById('illustrationOptionsWrapper').style.display = isEnabled ? 'flex' : 'none';
-              document.getElementById('optLayerIcon').style.display = isEnabled ? 'block' : 'none';
-              if (!isEnabled && document.getElementById('activeTransformLayer').value === 'icon') {
-                document.getElementById('activeTransformLayer').value = 'bgLabel';
-              }
             }
             updateGrid();
           } else {
@@ -467,10 +564,26 @@
         });
       });
 
-      document.getElementById('bgLabelImage').addEventListener('change', e => handleImageUpload(e, (img, url) => { assets.bgLabel = img; assetDataUrls.bgLabel = url; renderSheet(); }));
-      document.getElementById('bgCardImage').addEventListener('change', e => handleImageUpload(e, (img, url) => { assets.bgCard = img; assetDataUrls.bgCard = url; renderSheet(); }));
-      document.getElementById('ribbonImage').addEventListener('change', e => handleImageUpload(e, (img, url) => { assets.ribbonImg = img; assetDataUrls.ribbonImg = url; renderSheet(); }));
-      document.getElementById('globalImageInput').addEventListener('change', e => handleImageUpload(e, (img, url) => { assets.globalIcon = img; assetDataUrls.globalIcon = url; renderSheet(); }));
+      document.getElementById('btnClearBgLabel').addEventListener('click', () => {
+        saveStateForUndo();
+        assets.bgLabel = null;
+        assetDataUrls.bgLabel = null;
+        document.getElementById('bgLabelImage').value = '';
+        renderSheet();
+      });
+
+      document.getElementById('btnClearBgCard').addEventListener('click', () => {
+        saveStateForUndo();
+        assets.bgCard = null;
+        assetDataUrls.bgCard = null;
+        document.getElementById('bgCardImage').value = '';
+        renderSheet();
+      });
+
+      document.getElementById('bgLabelImage').addEventListener('change', e => { saveStateForUndo(); handleImageUpload(e, (img, url) => { assets.bgLabel = img; assetDataUrls.bgLabel = url; renderSheet(); }); });
+      document.getElementById('bgCardImage').addEventListener('change', e => { saveStateForUndo(); handleImageUpload(e, (img, url) => { assets.bgCard = img; assetDataUrls.bgCard = url; renderSheet(); }); });
+      document.getElementById('ribbonImage').addEventListener('change', e => { saveStateForUndo(); handleImageUpload(e, (img, url) => { assets.ribbonImg = img; assetDataUrls.ribbonImg = url; renderSheet(); }); });
+      document.getElementById('globalImageInput').addEventListener('change', e => { saveStateForUndo(); handleImageUpload(e, (img, url) => { assets.globalIcon = img; assetDataUrls.globalIcon = url; renderSheet(); }); });
       
       document.getElementById('useSameImage').addEventListener('change', e => {
         document.getElementById('globalImageWrapper').style.display = e.target.checked ? 'flex' : 'none';
@@ -480,10 +593,17 @@
       document.getElementById('btnExportPNG').addEventListener('click', exportPNG);
       document.getElementById('btnExportPDF').addEventListener('click', exportPDF);
 
-      document.getElementById('btnZoomIn').addEventListener('click', () => applyZoom(1.1));
-      document.getElementById('btnZoomOut').addEventListener('click', () => applyZoom(0.9));
+      document.getElementById('btnZoomIn').addEventListener('click', () => { saveStateForUndo(); applyZoom(1.1); });
+      document.getElementById('btnZoomOut').addEventListener('click', () => { saveStateForUndo(); applyZoom(0.9); });
       document.getElementById('btnResetTransform').addEventListener('click', () => {
-        const t = getActiveTransform();
+        saveStateForUndo();
+        const layerKey = getActiveLayerName();
+        let t;
+        if (layerKey === 'bgLabel') t = layerTransforms.bgLabel;
+        else if (layerKey === 'bgCard') t = layerTransforms.bgCard;
+        else if (layerKey === 'ribbon') t = layerTransforms.ribbon;
+        else t = (document.getElementById('useSameImage').checked ? layerTransforms.iconGlobal : (layerTransforms.iconIndividual[selectedLabelIndex] || layerTransforms.iconGlobal));
+        
         t.scale = 1.0; t.offsetX = 0; t.offsetY = 0;
         renderSheet();
       });
@@ -491,6 +611,14 @@
       document.getElementById('btnAddGoogleFont').addEventListener('click', () => {
         const val = document.getElementById('customGoogleFontInput').value.trim();
         if (val) loadGoogleFont(val);
+      });
+
+      window.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+          if (document.activeElement.tagName === 'INPUT' && document.activeElement.type === 'text') return;
+          e.preventDefault();
+          undoLastAction();
+        }
       });
     }
 
@@ -562,7 +690,7 @@
       btnSave.addEventListener('click', () => {
         const subInputs = Array.from(document.querySelectorAll('.sub-name')).map(inp => inp.value);
         const projectData = {
-          version: "1.2",
+          version: "1.4",
           date: new Date().toISOString(),
           settings: {
             sheetFormat: document.getElementById('sheetFormat').value,
@@ -577,6 +705,9 @@
             labelHeight: document.getElementById('labelHeight').value,
             roundedCorners: document.getElementById('roundedCorners').value,
             enableSideTab: document.getElementById('enableSideTab').checked,
+            enableBorder: document.getElementById('enableBorder').checked,
+            borderWidth: document.getElementById('borderWidth').value,
+            borderColor: document.getElementById('borderColor').value,
             enableSideIllustration: document.getElementById('enableSideIllustration').checked,
             showCutGuides: document.getElementById('showCutGuides').checked,
             fontFamilyStudent: document.getElementById('fontFamilyStudent').value,
@@ -663,6 +794,9 @@
       setVal('labelHeight', s.labelHeight);
       setVal('roundedCorners', s.roundedCorners);
       setChecked('enableSideTab', s.enableSideTab);
+      setChecked('enableBorder', s.enableBorder);
+      setVal('borderWidth', s.borderWidth || 2);
+      setVal('borderColor', s.borderColor || '#333333');
       setChecked('enableSideIllustration', s.enableSideIllustration !== undefined ? s.enableSideIllustration : true);
       setChecked('showCutGuides', s.showCutGuides);
       setVal('studentTextColor', s.studentTextColor);
@@ -684,9 +818,7 @@
       setChecked('useSameImage', s.useSameImage);
 
       const isEnabled = s.enableSideIllustration !== false;
-      document.getElementById('globalImageWrapper').style.display = s.useSameImage ? 'flex' : 'none';
       document.getElementById('illustrationOptionsWrapper').style.display = isEnabled ? 'flex' : 'none';
-      document.getElementById('optLayerIcon').style.display = isEnabled ? 'block' : 'none';
       document.getElementById('studentFontScaleVal').innerText = Math.round(s.studentFontSizeScale * 100) + '%';
       document.getElementById('gradeFontScaleVal').innerText = Math.round(s.gradeFontSizeScale * 100) + '%';
       document.getElementById('subjectFontScaleVal').innerText = Math.round(s.subjectFontSizeScale * 100) + '%';
@@ -719,7 +851,7 @@
         }
       }
 
-      updateGrid();
+      updateGrid(false);
 
       if (s.subjects && s.subjects.length > 0) {
         setTimeout(() => {
@@ -733,10 +865,10 @@
     }
 
     function getActiveTransform() {
-      const activeLayer = document.getElementById('activeTransformLayer').value;
-      if (activeLayer === 'bgLabel') return layerTransforms.bgLabel;
-      if (activeLayer === 'bgCard') return layerTransforms.bgCard;
-      if (activeLayer === 'ribbon') return layerTransforms.ribbon;
+      const layerKey = getActiveLayerName();
+      if (layerKey === 'bgLabel') return layerTransforms.bgLabel;
+      if (layerKey === 'bgCard') return layerTransforms.bgCard;
+      if (layerKey === 'ribbon') return layerTransforms.ribbon;
 
       const isGlobal = document.getElementById('useSameImage').checked;
       if (isGlobal) return layerTransforms.iconGlobal;
@@ -758,6 +890,7 @@
 
       canvas.addEventListener('mousedown', e => {
         isDragging = true;
+        saveStateForUndo();
         lastX = e.clientX; lastY = e.clientY;
         previewContainer.focus();
       });
@@ -779,6 +912,7 @@
 
       canvas.addEventListener('wheel', e => {
         e.preventDefault();
+        saveStateForUndo();
         const factor = e.deltaY < 0 ? 1.06 : 0.94;
         applyZoom(factor);
       }, { passive: false });
@@ -787,6 +921,7 @@
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
           if (document.activeElement.tagName === 'INPUT' && document.activeElement.type === 'text') return;
           e.preventDefault();
+          saveStateForUndo();
           const step = e.shiftKey ? 20 : 5;
           const t = getActiveTransform();
           if (e.key === 'ArrowUp') t.offsetY -= step;
@@ -822,7 +957,8 @@
 
     let gridConfig = { cols: 2, rows: 4, total: 8 };
 
-    function updateGrid() {
+    function updateGrid(saveUndo = true) {
+      if (saveUndo) saveStateForUndo();
       const sheet = getSheetDimensions();
       const mTop = parseFloat(document.getElementById('marginTop').value) || 0;
       const mBottom = parseFloat(document.getElementById('marginBottom').value) || 0;
@@ -865,9 +1001,13 @@
         subjectsContainer.appendChild(row);
       }
 
-      document.querySelectorAll('.sub-name').forEach(inp => inp.addEventListener('input', renderSheet));
+      document.querySelectorAll('.sub-name').forEach(inp => {
+        inp.addEventListener('focus', () => saveStateForUndo());
+        inp.addEventListener('input', renderSheet);
+      });
       document.querySelectorAll('.sub-img').forEach(inp => {
         inp.addEventListener('change', e => {
+          saveStateForUndo();
           const idx = e.target.dataset.index;
           handleImageUpload(e, (img, url) => {
             assets.individualIcons[idx] = img;
@@ -920,6 +1060,10 @@
       const enableTab = document.getElementById('enableSideTab').checked;
       const showGuides = document.getElementById('showCutGuides').checked;
 
+      const enableBorder = document.getElementById('enableBorder').checked;
+      const borderWidth = parseFloat(document.getElementById('borderWidth').value) || 2;
+      const borderColor = document.getElementById('borderColor').value;
+
       const subInputs = document.querySelectorAll('.sub-name');
 
       let idx = 0;
@@ -951,6 +1095,9 @@
             cardScale,
             isRounded,
             enableTab,
+            enableBorder,
+            borderWidth,
+            borderColor,
             enableSideIllustration,
             showGuides
           });
@@ -979,6 +1126,17 @@
         ctx.fillRect(0, 0, w, h);
       }
 
+      if (data.enableBorder) {
+        ctx.save();
+        ctx.lineWidth = data.borderWidth;
+        ctx.strokeStyle = data.borderColor;
+        ctx.beginPath();
+        if (data.isRounded) ctx.roundRect(0, 0, w, h, radius);
+        else ctx.rect(0, 0, w, h);
+        ctx.stroke();
+        ctx.restore();
+      }
+
       // 2. Pestaña lateral izquierda
       if (data.enableTab) {
         const tabW = w * 0.04;
@@ -988,7 +1146,7 @@
         ctx.fillRect(0, tabY, tabW, tabH);
       }
 
-      // 3. Tarjeta central de datos (Escalada proporcionalmente con cardScale)
+      // 3. Tarjeta central de datos
       let baseCardW = data.enableSideIllustration ? (data.enableTab ? w * 0.64 : w * 0.65) : (data.enableTab ? w * 0.90 : w * 0.94);
       let baseCardH = h * 0.80;
 
@@ -1001,7 +1159,7 @@
       } else {
         cardX = (w - cardW) / 2;
       }
-      const cardY = (h - cardH) / 2; // Centrado vertical exacto
+      const cardY = (h - cardH) / 2;
 
       const cardRadius = data.isRounded ? cardH * 0.08 : 0;
 
@@ -1039,7 +1197,6 @@
         ctx.fillRect(cardX, ribbonY, cardW, ribbonH);
       }
 
-      // Texto de Asignatura (Se ajusta dinámicamente al nuevo tamaño del bloque)
       const maxSubjectW = cardW * 0.92;
       const baseSubjectFontSize = Math.round(ribbonH * 0.58 * data.scaleSubject);
       drawAdaptiveSubjectText(
@@ -1052,7 +1209,7 @@
       ctx.stroke();
       ctx.restore();
 
-      // 5. Textos del Alumno (Escalamiento automático acorde al bloque central)
+      // 5. Textos del Alumno
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       const textAreaH = cardH - ribbonH;
